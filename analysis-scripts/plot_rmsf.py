@@ -47,7 +47,7 @@ def plot_rmsf(args):
 
     plt.clf()
     plt.grid(True)
-    plt.plot(rmsf, "m.-")
+    plt.plot(rmsf, "k.-")
     plt.xlabel("Residue", fontsize=16)
     plt.ylabel("RMSF (nm)", fontsize=16)
     fig_flname = os.path.join(args.figures_dir, "rmsf.png")
