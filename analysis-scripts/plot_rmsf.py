@@ -36,14 +36,10 @@ def plot_rmsf(args):
     backbone = traj.topology.select_atom_indices("minimal")
     traj.superpose(traj, atom_indices=backbone)
 
-    print type(traj.xyz)
-
     alpha_carbons = traj.topology.select_atom_indices("alpha")
 
     avg_xyz = np.mean(traj.xyz[:, alpha_carbons, :], axis=0)
     rmsf = np.sqrt(3*np.mean((traj.xyz[:, alpha_carbons, :] - avg_xyz)**2, axis=(0,2)))
-
-    print rmsf.shape
 
     plt.clf()
     plt.grid(True)
