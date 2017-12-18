@@ -28,27 +28,35 @@ def get_forcefield(forcefield_name):
     # file before GBSA file
     return ForceField(forcefield_name + ".xml", gbsa_fl)
 
-
-def run_simulation(n_steps, cutoff_distance, temperature, damping, forcefield_name, positions_fl, energies_fl, output_steps):
-    pdb = PDBFile("models/alanine-dipeptide-implicit.pdb")
+def run_simulation(pdb_file, n_steps, cutoff_distance, timestep, temperature, damping, forcefield_name, positions_fl, energies_fl, output_steps, minimize, input_state, output_state):
+    pdb = PDBFile(pdb_file)
 
     forcefield = get_forcefield(forcefield_name)
 
-    system = forcefield.createSystem(pdb.topology,
+    positions = pdb.getPositions()
+    topology = pdb.getTopology()
+
+    system = forcefield.createSystem(topology,
                                      nonbondedMethod=CutoffNonPeriodic,
                                      nonbondedCutoff=cutoff_distance * nanometer)
-
     integrator = LangevinIntegrator(temperature * kelvin,
                                     damping / picosecond,
-                                    0.001 * picosecond)
+                                    timestep * picosecond)
 
-    simulation = Simulation(pdb.topology,
+    simulation = Simulation(topology,
                             system,
-                            integrator)
+                            integrator,
+                            state=input_state)
 
-    simulation.context.setPositions(pdb.positions)
-    simulation.minimizeEnergy()
+    platform = simulation.context.getPlatform()
+    print "Platform:", platform.getName(), platform.supportsDoublePrecision()
+    print "System:", system.usesPeriodicBoundaryConditions()
 
+    if not input_state:
+        simulation.context.setPositions(positions)
+
+    if minimize:
+        simulation.minimizeEnergy()
 
     simulation.reporters.append(DCDReporter(positions_fl, output_steps))
 
@@ -59,7 +67,8 @@ def run_simulation(n_steps, cutoff_distance, temperature, damping, forcefield_na
                                                   kineticEnergy=True,
                                                   potentialEnergy=True,
                                                   totalEnergy=True,
-                                                  temperature=True))
+                                                  temperature=True,
+                                                  speed=True))
 
     simulation.reporters.append(StateDataReporter(energies_fl,
                                                   output_steps,
@@ -69,8 +78,9 @@ def run_simulation(n_steps, cutoff_distance, temperature, damping, forcefield_na
                                                   potentialEnergy=True,
                                                   totalEnergy=True,
                                                   temperature=True))
-    
     simulation.step(n_steps)
+    if output_state:
+        simulation.saveState(output_state)
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -78,7 +88,7 @@ def parse_args():
     parser.add_argument("--steps",
                         type=int,
                         required=True,
-                        help="Number of steps (each step is 1 fs)")
+                        help="Number of steps")
     
     parser.add_argument("--temperature",
                         type=float,
@@ -105,10 +115,19 @@ def parse_args():
                         required=True,
                         help="File to write energies out to")
 
+    parser.add_argument("--minimize",
+                        action="store_true",
+                        help="Minimize before running simulation")
+
     parser.add_argument("--steps-output",
                         type=int,
                         default=10000,
                         help="Period for writing out energies and positions (in steps)")
+
+    parser.add_argument("--timestep",
+                        type=float,
+                        default=0.001,
+                        help="Timesteps in ps")
 
     parser.add_argument("--forcefield",
                         type=str,
@@ -118,21 +137,40 @@ def parse_args():
                                  "amber99sbnmr",
                                  "amber03",
                                  "amber10"],
-                        default="amber96",
+                        required=True,
                         help="Choice of Amber forcefield")
+
+    parser.add_argument("--pdb-file",
+                        type=str,
+                        required=True,
+                        help="Structure file")
+
+    parser.add_argument("--input-state",
+                        type=str,
+                        help="Structure file")
+
+    parser.add_argument("--output-state",
+                        type=str,
+                        help="Structure file")
+
 
     return parser.parse_args()
 
 if __name__ == "__main__":
     args = parse_args()
 
-    run_simulation(args.steps,
+    run_simulation(args.pdb_file,
+                   args.steps,
                    args.cutoff_dist,
+                   args.timestep,
                    args.temperature,
                    args.damping,
                    args.forcefield,
                    args.positions_fl,
                    args.energies_fl,
-                   args.steps_output)
+                   args.steps_output,
+                   args.minimize,
+                   args.input_state,
+                   args.output_state)
 
     
