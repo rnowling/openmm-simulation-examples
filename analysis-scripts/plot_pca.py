@@ -118,7 +118,7 @@ def parseargs():
     parser.add_argument("--input-traj",
                         type=str,
                         required=True,
-    help="Input trajectory file")
+                        help="Input trajectory file")
 
     parser.add_argument("--n-components",
                         type=int,
