@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import argparse
+from collections import Counter
 import os
 import sys
 
@@ -36,18 +37,40 @@ def plot_rmsf(args):
     backbone = traj.topology.select_atom_indices("minimal")
     traj.superpose(traj, atom_indices=backbone)
 
-    alpha_carbons = traj.topology.select_atom_indices("alpha")
+    print "computing secondary structure"
+    sec_structures = md.compute_dssp(traj)
 
+    counter = Counter()
+    colors = []
+    for r in xrange(traj.n_residues):
+        counter.clear()
+        for f in xrange(traj.n_frames):
+            ss = sec_structures[f, r]
+            counter[ss] += 1
+        code, cnt = counter.most_common(1)[0]
+        if code == "H":
+            colors.append("m")
+        elif code == "E":
+            colors.append("y")
+        elif code == "C":
+            colors.append("g")
+        else:
+            raise Exception
+            
+
+    print "computing RMSF"
+    alpha_carbons = traj.topology.select_atom_indices("alpha")
     avg_xyz = np.mean(traj.xyz[:, alpha_carbons, :], axis=0)
     rmsf = np.sqrt(3*np.mean((traj.xyz[:, alpha_carbons, :] - avg_xyz)**2, axis=(0,2)))
 
     plt.clf()
-    plt.grid(True)
-    plt.plot(xrange(1, len(rmsf) + 1),
-             rmsf,
-             "k.-")
+    plt.bar(xrange(1, len(rmsf) + 1),
+            rmsf,
+            width=1.0,
+            color = colors)
     plt.xlabel("Residue", fontsize=16)
     plt.ylabel("RMSF (nm)", fontsize=16)
+    plt.ylim([0, max(rmsf)])
     fig_flname = os.path.join(args.figures_dir, "rmsf.png")
     plt.savefig(fig_flname,
                 DPI=300)
