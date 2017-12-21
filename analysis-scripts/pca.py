@@ -91,7 +91,7 @@ def plot_projections(args):
     for p1, p2 in pairwise(args.pairs):
         H, xedges, yedges = np.histogram2d(projected[:, p1],
                                            projected[:, p2],
-                                           bins=20)
+                                           bins=30)
         H_T = H.T
         vmin = np.min(np.min(H_T))
         vmax = np.max(np.max(H_T))
