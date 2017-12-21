@@ -23,12 +23,12 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 import mdtraj as md
 from sklearn.decomposition import TruncatedSVD
+from sklearn.externals import joblib
 
+SVD_KEY = "svd"
+PROJECTION_KEY = "projected-coordinates"
 
-def explained_variance_analysis(args):
-    if not os.path.exists(args.figures_dir):
-        os.makedirs(args.figures_dir)
-
+def compute_pca(args):
     print "reading trajectory"
     traj = md.load(args.input_traj,
                    top=args.pdb_file)
@@ -41,7 +41,20 @@ def explained_variance_analysis(args):
 
     print "Fitting SVD"
     svd = TruncatedSVD(n_components = args.n_components)
-    svd.fit(reshaped)
+    projected = svd.fit_transform(reshaped)
+
+    print "Writing model"
+    model = { SVD_KEY : svd,
+              PROJECTION_KEY : projected }
+    
+    joblib.dump(model, args.model_file)
+
+def explained_variance_analysis(args):
+    if not os.path.exists(args.figures_dir):
+        os.makedirs(args.figures_dir)
+
+    model = joblib.load(args.model_file)
+    svd = model[SVD_KEY]
 
     plt.clf()
     plt.grid(True)
@@ -71,19 +84,8 @@ def plot_projections(args):
     if not os.path.exists(args.figures_dir):
         os.makedirs(args.figures_dir)
 
-    print "reading trajectory"
-    traj = md.load(args.input_traj,
-                   top=args.pdb_file)
-
-    print "aligning frames"
-    traj.superpose(traj)
-
-    reshaped = traj.xyz.reshape(traj.n_frames,
-                                traj.n_atoms * 3)
-
-    print "Fitting SVD"
-    svd = TruncatedSVD(n_components = args.n_components)
-    projected = svd.fit_transform(reshaped)
+    model = joblib.load(args.model_file)
+    projected = model[PROJECTION_KEY]
 
     for p1, p2 in pairwise(args.pairs):
         fig_flname = os.path.join(args.figures_dir,
@@ -105,45 +107,71 @@ def plot_projections(args):
 def parseargs():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--figures-dir",
-                        type=str,
-                        required=True,
-                        help="Figure output directory")
-
-    parser.add_argument("--pdb-file",
-                        type=str,
-                        required=True,
-                        help="Input PDB file")
-
-    parser.add_argument("--input-traj",
-                        type=str,
-                        required=True,
-                        help="Input trajectory file")
-
-    parser.add_argument("--n-components",
-                        type=int,
-                        required=True,
-                        help="Number of PCs to compute")
-
     subparsers = parser.add_subparsers(dest="mode")
+
+    comp_parser = subparsers.add_parser("compute-pca",
+                                        help="Compute PCA")
+
+    comp_parser.add_argument("--n-components",
+                             type=int,
+                             required=True,
+                             help="Number of PCs to compute")
+
+    comp_parser.add_argument("--pdb-file",
+                             type=str,
+                             required=True,
+                             help="Input PDB file")
+
+    comp_parser.add_argument("--input-traj",
+                             type=str,
+                             required=True,
+                             help="Input trajectory file")
+
+    comp_parser.add_argument("--model-file",
+                             type=str,
+                             required=True,
+                             help="File to which to save model")
+    
     eva_parser = subparsers.add_parser("explained-variance-analysis",
-                                       help="Compute explained variances of PCs")
+                                       help="Plot explained variances of PCs")
 
-    plot_parser = subparsers.add_parser("plot-projections",
-                                        help="Plot structures on projections")
+    eva_parser.add_argument("--figures-dir",
+                            type=str,
+                            required=True,
+                            help="Figure output directory")
 
-    plot_parser.add_argument("--pairs",
+    eva_parser.add_argument("--model-file",
+                            type=str,
+                            required=True,
+                            help="File from which to load model")
+    
+    proj_parser = subparsers.add_parser("plot-projections",
+                                        help="Plot structures onto projections")
+
+    proj_parser.add_argument("--figures-dir",
+                             type=str,
+                             required=True,
+                             help="Figure output directory")
+    
+    proj_parser.add_argument("--pairs",
                              type=int,
                              nargs="+",
                              required=True,
                              help="Pairs of PCs to plot")
+
+    proj_parser.add_argument("--model-file",
+                             type=str,
+                             required=True,
+                             help="File from which to load model")
 
     return parser.parse_args()
 
 if __name__ == "__main__":
     args = parseargs()
 
-    if args.mode == "explained-variance-analysis":
+    if args.mode == "compute-pca":
+        compute_pca(args)
+    elif args.mode == "explained-variance-analysis":
         explained_variance_analysis(args)
     elif args.mode == "plot-projections":
         plot_projections(args)
