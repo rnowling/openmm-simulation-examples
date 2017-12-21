@@ -22,6 +22,7 @@ import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 import mdtraj as md
+import numpy as np
 from sklearn.decomposition import TruncatedSVD
 from sklearn.externals import joblib
 
@@ -88,18 +89,28 @@ def plot_projections(args):
     projected = model[PROJECTION_KEY]
 
     for p1, p2 in pairwise(args.pairs):
-        fig_flname = os.path.join(args.figures_dir,
-                                  "pca_projection_%s_%s.png" % (str(p1), str(p2)))
-        plt.clf()
-        plt.grid(True)
-        plt.scatter(projected[:, p1],
-                    projected[:, p2],
-                    color="c",
-                    marker="o",
-                    edgecolor="k",
-                    alpha=0.7)
+        H, xedges, yedges = np.histogram2d(projected[:, p1],
+                                           projected[:, p2],
+                                           bins=20)
+        H_T = H.T
+        vmin = np.min(np.min(H_T))
+        vmax = np.max(np.max(H_T))
+        plt.pcolor(H_T, vmin=vmin, vmax=vmax)
         plt.xlabel("Principal Component %s" % p1, fontsize=16)
         plt.ylabel("Principal Component %s" % p2, fontsize=16)
+        x_ticks = [round(f, 1) for f in xedges]
+        y_ticks = [round(f, 1) for f in yedges]
+        plt.xticks(np.arange(H_T.shape[0] + 1)[::2], x_ticks[::2])
+        plt.yticks(np.arange(H_T.shape[1] + 1)[::2], y_ticks[::2])
+        plt.xlim([0.0, H_T.shape[0]])
+        plt.ylim([0.0, H_T.shape[1]])
+        #plt.gca().invert_xaxis()
+        #plt.gca().invert_yaxis()
+        plt.tight_layout()
+        #plt.colorbar()
+        
+        fig_flname = os.path.join(args.figures_dir,
+                                  "pca_projection_%s_%s.png" % (str(p1), str(p2)))
         plt.savefig(fig_flname,
                     DPI=300)
 
