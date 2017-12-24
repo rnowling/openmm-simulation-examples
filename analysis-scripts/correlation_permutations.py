@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import argparse
-from collections import defaultdict
 import os
 import sys
 
@@ -29,15 +28,13 @@ def calculate_correlations(args):
         os.makedirs(args.corr_dir)
 
     n_residues = displacements.shape[1]
-    permuted = displacements.copy()
-    permuted_corrs = defaultdict(list)
     for i in xrange(args.n_permutations):
         print "Computing permutation", i
         for res_id in xrange(n_residues):
-            np.random.shuffle(permuted[:, i])
+            np.random.shuffle(displacements[:, i])
         
         print "Computing correlations"
-        permuted_corr = np.corrcoef(permuted, rowvar=0)
+        permuted_corr = np.corrcoef(displacements, rowvar=0)
         print
 
         flname = os.path.join(args.corr_dir,
