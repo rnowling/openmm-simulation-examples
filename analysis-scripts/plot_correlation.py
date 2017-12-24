@@ -24,10 +24,7 @@ import matplotlib.pyplot as plt
 import mdtraj as md
 import numpy as np
 
-def plot_rmsf(args):
-    if not os.path.exists(args.figures_dir):
-        os.makedirs(args.figures_dir)
-
+def run_corr(args):
     print "reading trajectory"
     traj = md.load(args.input_traj,
                    top=args.pdb_file)
@@ -36,22 +33,28 @@ def plot_rmsf(args):
     backbone = traj.topology.select_atom_indices("minimal")
     traj.superpose(traj, atom_indices=backbone)
 
-    print "computing distances"
+    print "computing displacements"
     alpha_carbons = traj.topology.select_atom_indices("alpha")
     traj = traj.atom_slice(alpha_carbons)
-    
-    dist = np.sqrt(np.sum((traj.xyz - np.mean(traj.xyz, axis=0))**2, axis=2))
+    displacement = np.sqrt(np.sum((traj.xyz - np.mean(traj.xyz, axis=0))**2, axis=2))
+
+    if args.disp_matrix_fl:
+        np.save(args.disp_matrix_fl,
+                displacement)
 
     print "Computing correlation matrix"
-    corr = np.corrcoef(dist, rowvar=0)
+    corr = np.corrcoef(displacement, rowvar=0)
 
-    print "Plotting correlation matrix"
-    plt.pcolor(corr, vmin=-1.0, vmax=1.0)
-    plt.colorbar()
-    plt.tight_layout()
-    fig_flname = os.path.join(args.figures_dir, "corr.png")
-    plt.savefig(fig_flname,
-                DPI=300)
+    if args.figures_dir:
+        print "Plotting correlation matrix"
+        if not os.path.exists(args.figures_dir):
+            os.makedirs(args.figures_dir)
+        plt.pcolor(corr, vmin=-1.0, vmax=1.0)
+        plt.colorbar()
+        plt.tight_layout()
+        fig_flname = os.path.join(args.figures_dir, "corr.png")
+        plt.savefig(fig_flname,
+                    DPI=300)
 
 
     
@@ -60,8 +63,11 @@ def parseargs():
 
     parser.add_argument("--figures-dir",
                         type=str,
-                        required=True,
                         help="Figure output directory")
+
+    parser.add_argument("--disp-matrix-fl",
+                        type=str,
+                        help="Output displacement matrix")
 
     parser.add_argument("--pdb-file",
                         type=str,
@@ -78,4 +84,4 @@ def parseargs():
 if __name__ == "__main__":
     args = parseargs()
 
-    plot_rmsf(args)
+    run_corr(args)
