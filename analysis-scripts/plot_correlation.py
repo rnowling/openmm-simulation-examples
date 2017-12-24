@@ -56,7 +56,6 @@ def run_corr(args):
         plt.savefig(fig_flname,
                     DPI=300)
 
-
     
 def parseargs():
     parser = argparse.ArgumentParser()
