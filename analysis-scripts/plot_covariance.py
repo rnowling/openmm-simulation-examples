@@ -43,10 +43,10 @@ def plot_rmsf(args):
     dist = np.sqrt(np.sum((traj.xyz - np.mean(traj.xyz, axis=0))**2, axis=2))
 
     print "Computing correlation matrix"
-    corr = np.corrcoef(dist)
+    corr = np.corrcoef(dist, rowvar=0)
 
     print "Plotting correlation matrix"
-    plt.pcolor(corr)
+    plt.pcolor(corr, vmin=-1.0, vmax=1.0)
     plt.colorbar()
     plt.tight_layout()
     fig_flname = os.path.join(args.figures_dir, "corr.png")
