@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import argparse
+from itertools import combinations
 import os
 import sys
 
@@ -43,6 +44,32 @@ def compute_pca(args):
     print "Fitting SVD"
     svd = TruncatedSVD(n_components = args.n_components)
     projected = svd.fit_transform(reshaped)
+
+    print "Writing model"
+    model = { SVD_KEY : svd,
+              PROJECTION_KEY : projected }
+    
+    joblib.dump(model, args.model_file)
+
+def compute_distance_pca(args):
+    print "reading trajectory"
+    traj = md.load(args.input_traj,
+                   top=args.pdb_file)
+
+    print "computing distances"
+    alpha_carbons = traj.topology.select_atom_indices("alpha")
+
+    print len(alpha_carbons)
+
+    atom_pairs = list(combinations(alpha_carbons,
+                                   2))
+    pairwise_distances = md.geometry.compute_distances(traj,
+                                                       atom_pairs)
+    print pairwise_distances.shape
+
+    print "Fitting SVD"
+    svd = TruncatedSVD(n_components = args.n_components)
+    projected = svd.fit_transform(pairwise_distances)
 
     print "Writing model"
     model = { SVD_KEY : svd,
@@ -142,6 +169,29 @@ def parseargs():
                              type=str,
                              required=True,
                              help="File to which to save model")
+
+    comp_dist_parser = subparsers.add_parser("compute-dist-pca",
+                                             help="Compute PCA")
+
+    comp_dist_parser.add_argument("--n-components",
+                                  type=int,
+                                  required=True,
+                                  help="Number of PCs to compute")
+
+    comp_dist_parser.add_argument("--pdb-file",
+                                  type=str,
+                                  required=True,
+                                  help="Input PDB file")
+
+    comp_dist_parser.add_argument("--input-traj",
+                                  type=str,
+                                  required=True,
+                                  help="Input trajectory file")
+
+    comp_dist_parser.add_argument("--model-file",
+                                  type=str,
+                                  required=True,
+                                  help="File to which to save model")
     
     eva_parser = subparsers.add_parser("explained-variance-analysis",
                                        help="Plot explained variances of PCs")
@@ -182,6 +232,8 @@ if __name__ == "__main__":
 
     if args.mode == "compute-pca":
         compute_pca(args)
+    elif args.mode == "compute-dist-pca":
+        compute_distance_pca(args)
     elif args.mode == "explained-variance-analysis":
         explained_variance_analysis(args)
     elif args.mode == "plot-projections":
