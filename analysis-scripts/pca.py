@@ -38,12 +38,12 @@ def compute_pca(args):
     print "aligning frames"
     traj.superpose(traj)
 
-    reshaped = traj.xyz.reshape(traj.n_frames,
-                                traj.n_atoms * 3)
+    traj = traj.xyz.reshape(traj.n_frames,
+                            traj.n_atoms * 3)
 
     print "Fitting SVD"
     svd = TruncatedSVD(n_components = args.n_components)
-    projected = svd.fit_transform(reshaped)
+    projected = svd.fit_transform(traj)
 
     print "Writing model"
     model = { SVD_KEY : svd,
@@ -59,14 +59,10 @@ def compute_distance_pca(args):
     print "computing distances"
     alpha_carbons = traj.topology.select_atom_indices("alpha")
 
-    print len(alpha_carbons)
-
     atom_pairs = list(combinations(alpha_carbons,
                                    2))
     pairwise_distances = md.geometry.compute_distances(traj,
                                                        atom_pairs)
-    print pairwise_distances.shape
-
     print "Fitting SVD"
     svd = TruncatedSVD(n_components = args.n_components)
     projected = svd.fit_transform(pairwise_distances)
