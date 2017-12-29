@@ -94,13 +94,13 @@ def plot_hbonds(args):
             plt.ylabel('Counts', fontsize=16)
             plt.xlabel('H-bond Frequency', fontsize=16)
     plt.legend()
-    plt.savefig(args.figures_fl,
+    plt.savefig(args.figure_fl,
                 DPI=300)
     
 def parseargs():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--figures-fl",
+    parser.add_argument("--figure-fl",
                         type=str,
                         required=True,
                         help="Figure output file")
