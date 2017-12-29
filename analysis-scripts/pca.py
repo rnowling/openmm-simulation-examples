@@ -51,6 +51,30 @@ def compute_pca(args):
     
     joblib.dump(model, args.model_file)
 
+def compute_dihedral_pca(args):
+    print "reading trajectory"
+    traj = md.load(args.input_traj,
+                   top=args.pdb_file)
+
+    print "computing dihedrals"
+    _, phi_angles = md.compute_phi(traj,
+                                   periodic=False)
+    _, psi_angles = md.compute_psi(traj,
+                                   periodic=False)
+
+    features = np.hstack([phi_angles,
+                          psi_angles])
+
+    print "Fitting SVD"
+    svd = TruncatedSVD(n_components = args.n_components)
+    projected = svd.fit_transform(features)
+
+    print "Writing model"
+    model = { SVD_KEY : svd,
+              PROJECTION_KEY : projected }
+    
+    joblib.dump(model, args.model_file)
+    
 def compute_distance_pca(args):
     print "reading trajectory"
     traj = md.load(args.input_traj,
