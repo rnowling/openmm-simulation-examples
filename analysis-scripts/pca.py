@@ -62,7 +62,8 @@ def compute_distance_pca(args):
     atom_pairs = list(combinations(alpha_carbons,
                                    2))
     pairwise_distances = md.geometry.compute_distances(traj,
-                                                       atom_pairs)
+                                                       atom_pairs,
+                                                       periodic=False)
     print "Fitting SVD"
     svd = TruncatedSVD(n_components = args.n_components)
     projected = svd.fit_transform(pairwise_distances)
