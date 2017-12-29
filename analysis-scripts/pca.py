@@ -213,6 +213,29 @@ def parseargs():
                                   type=str,
                                   required=True,
                                   help="File to which to save model")
+
+    comp_dih_parser = subparsers.add_parser("compute-dih-pca",
+                                             help="Compute dihedral PCA")
+
+    comp_dih_parser.add_argument("--n-components",
+                                 type=int,
+                                 required=True,
+                                 help="Number of PCs to compute")
+
+    comp_dih_parser.add_argument("--pdb-file",
+                                 type=str,
+                                 required=True,
+                                 help="Input PDB file")
+
+    comp_dih_parser.add_argument("--input-traj",
+                                 type=str,
+                                 required=True,
+                                 help="Input trajectory file")
+
+    comp_dih_parser.add_argument("--model-file",
+                                 type=str,
+                                 required=True,
+                                 help="File to which to save model")
     
     eva_parser = subparsers.add_parser("explained-variance-analysis",
                                        help="Plot explained variances of PCs")
@@ -255,6 +278,8 @@ if __name__ == "__main__":
         compute_pca(args)
     elif args.mode == "compute-dist-pca":
         compute_distance_pca(args)
+    elif args.mode == "compute-dih-pca":
+        compute_dihedral_pca(args)
     elif args.mode == "explained-variance-analysis":
         explained_variance_analysis(args)
     elif args.mode == "plot-projections":
