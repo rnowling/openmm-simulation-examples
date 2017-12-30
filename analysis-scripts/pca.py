@@ -170,6 +170,22 @@ def plot_projections(args):
         plt.savefig(fig_flname,
                     DPI=300)
 
+def plot_projected_timeseries(args):
+    model = joblib.load(args.model_file)
+    projected = model[PROJECTION_KEY]
+
+    for dim in args.dimensions:
+        plt.plot(projected[:, dim],
+                 label=str(dim))
+        plt.xlabel("Time (frames)", fontsize=16)
+        plt.ylabel("Projected Value", fontsize=16)
+        plt.tight_layout()
+        plt.legend()
+        
+        plt.savefig(args.figure_fl,
+                    DPI=300)
+
+        
     
 def parseargs():
     parser = argparse.ArgumentParser()
@@ -239,6 +255,26 @@ def parseargs():
                              required=True,
                              help="File from which to load model")
 
+    proj_ts_parser = subparsers.add_parser("plot-projected-timeseries",
+                                           help="Plot projections over time")
+
+    proj_ts_parser.add_argument("--figure-fl",
+                                type=str,
+                                required=True,
+                                help="Figure output file")
+    
+    proj_ts_parser.add_argument("--dimensions",
+                                type=int,
+                                nargs="+",
+                                required=True,
+                                help="Dimensions to plot")
+
+    proj_ts_parser.add_argument("--model-file",
+                                type=str,
+                                required=True,
+                                help="File from which to load model")
+
+    
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -258,6 +294,8 @@ if __name__ == "__main__":
         explained_variance_analysis(args)
     elif args.mode == "plot-projections":
         plot_projections(args)
+    elif args.mode == "plot-projected-timeseries":
+        plot_projected_timeseries(args)
     else:
         print "Unknown mode '%s'" % args.mode
         sys.exit(1)
