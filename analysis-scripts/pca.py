@@ -74,30 +74,38 @@ def compute_dihedral_pca(args):
               PROJECTION_KEY : projected }
     
     joblib.dump(model, args.model_file)
-    
-def compute_distance_pca(args):
+
+def compute_transformed_dihedral_pca(args):
     print "reading trajectory"
     traj = md.load(args.input_traj,
                    top=args.pdb_file)
 
-    print "computing distances"
-    alpha_carbons = traj.topology.select_atom_indices("alpha")
+    print "computing dihedrals"
+    _, phi_angles = md.compute_phi(traj,
+                                   periodic=False)
+    _, psi_angles = md.compute_psi(traj,
+                                   periodic=False)
 
-    atom_pairs = list(combinations(alpha_carbons,
-                                   2))
-    pairwise_distances = md.geometry.compute_distances(traj,
-                                                       atom_pairs,
-                                                       periodic=False)
+    phi_sin = np.sin(phi_angles)
+    phi_cos = np.cos(phi_angles)
+    psi_sin = np.sin(psi_angles)
+    psi_cos = np.cos(psi_angles)
+
+    features = np.hstack([phi_sin,
+                          phi_cos,
+                          psi_sin,
+                          psi_cos])
+
     print "Fitting SVD"
     svd = TruncatedSVD(n_components = args.n_components)
-    projected = svd.fit_transform(pairwise_distances)
+    projected = svd.fit_transform(features)
 
     print "Writing model"
     model = { SVD_KEY : svd,
               PROJECTION_KEY : projected }
     
     joblib.dump(model, args.model_file)
-
+    
 def explained_variance_analysis(args):
     if not os.path.exists(args.figures_dir):
         os.makedirs(args.figures_dir)
@@ -191,51 +199,13 @@ def parseargs():
                              required=True,
                              help="File to which to save model")
 
-    comp_dist_parser = subparsers.add_parser("compute-dist-pca",
-                                             help="Compute PCA")
-
-    comp_dist_parser.add_argument("--n-components",
-                                  type=int,
-                                  required=True,
-                                  help="Number of PCs to compute")
-
-    comp_dist_parser.add_argument("--pdb-file",
-                                  type=str,
-                                  required=True,
-                                  help="Input PDB file")
-
-    comp_dist_parser.add_argument("--input-traj",
-                                  type=str,
-                                  required=True,
-                                  help="Input trajectory file")
-
-    comp_dist_parser.add_argument("--model-file",
-                                  type=str,
-                                  required=True,
-                                  help="File to which to save model")
-
-    comp_dih_parser = subparsers.add_parser("compute-dih-pca",
-                                             help="Compute dihedral PCA")
-
-    comp_dih_parser.add_argument("--n-components",
-                                 type=int,
-                                 required=True,
-                                 help="Number of PCs to compute")
-
-    comp_dih_parser.add_argument("--pdb-file",
-                                 type=str,
-                                 required=True,
-                                 help="Input PDB file")
-
-    comp_dih_parser.add_argument("--input-traj",
-                                 type=str,
-                                 required=True,
-                                 help="Input trajectory file")
-
-    comp_dih_parser.add_argument("--model-file",
-                                 type=str,
-                                 required=True,
-                                 help="File to which to save model")
+    comp_parser.add_argument("--feature-type",
+                             type=str,
+                             required=True,
+                             choices=["positions",
+                                      "dihedrals",
+                                      "transformed-dihedrals"],
+                             help="feature-type")
     
     eva_parser = subparsers.add_parser("explained-variance-analysis",
                                        help="Plot explained variances of PCs")
@@ -275,11 +245,15 @@ if __name__ == "__main__":
     args = parseargs()
 
     if args.mode == "compute-pca":
-        compute_pca(args)
-    elif args.mode == "compute-dist-pca":
-        compute_distance_pca(args)
-    elif args.mode == "compute-dih-pca":
-        compute_dihedral_pca(args)
+        if args.feature_type == "positions":
+            compute_pca(args)
+        elif args.feature_type == "dihedrals":
+            compute_dihedral_pca(args)
+        elif args.feature_type == "transformed-dihedrals":
+            compute_transformed_dihedral_pca(args)
+        else:
+            print "Unknown feature type '%s'" % args.feature_type
+            sys.exit(1)
     elif args.mode == "explained-variance-analysis":
         explained_variance_analysis(args)
     elif args.mode == "plot-projections":
