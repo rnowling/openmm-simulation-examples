@@ -28,31 +28,28 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def plot_distances(args):
-    residue_ones = list()
-    residue_twos = list()
+def plot_hbonds(args):
+    residue_pairs = set()
     for r1 in args.residue_group_1:
         for r2 in args.residue_group_2:
-            residue_ones.append(r1)
-            residue_twos.append(r2)
+            residue_pairs.add((r1, r2))
+
+    print residue_pairs
 
     print "Reading frames"
     traj = md.load(args.input_traj,
                    top=args.pdb_file)
 
-    print "computing distances"
-    alpha_carbons = traj.topology.select_atom_indices("alpha")
-    positions = traj.xyz[:, alpha_carbons, :]
-    distances = np.sqrt(np.sum((positions[:, residue_ones, :] - \
-                                positions[:, residue_twos, :])**2,
-                               axis=2))
-
-    print distances.shape
+    print "Computing contacts"
+    distances, pairs = md.compute_contacts(traj,
+                                           contacts=list(residue_pairs),
+                                           scheme="closest",
+                                           periodic=False)
 
     print "plotting"
     if args.plot_type == "timeseries":
-        time = np.arange(1, distances.shape[0] + 1) * 10 / 1000.
-        for i, (r1, r2) in enumerate(zip(residue_ones, residue_twos)):
+        time = np.arange(1, distances.shape[0] + 1) * traj.timestep / 10.
+        for i, (r1, r2) in enumerate(pairs):
             res1 = traj.topology.residue(r1)
             res2 = traj.topology.residue(r2)
             label = "%s -- %s" % (res1, res2)
@@ -61,7 +58,7 @@ def plot_distances(args):
             plt.ylabel('Residue Distance (nm)', fontsize=16)
             plt.ylim([0.0, np.nanmax(distances) + 0.2])
     elif args.plot_type == "distribution":
-        for i, (r1, r2) in enumerate(zip(residue_ones, residue_twos)):
+        for i, (r1, r2) in enumerate(pairs):
             res1 = traj.topology.residue(r1)
             res2 = traj.topology.residue(r2)
             label = "%s -- %s" % (res1, res2)
@@ -71,7 +68,7 @@ def plot_distances(args):
     plt.legend()
     plt.savefig(args.figures_fl,
                 DPI=300)
-
+    
 def parseargs():
     parser = argparse.ArgumentParser()
 
@@ -93,11 +90,13 @@ def parseargs():
     parser.add_argument("--residue-group-1",
                         type=int,
                         nargs="+",
+                        required=True,
                         help="Residue group 1")
 
     parser.add_argument("--residue-group-2",
                         type=int,
                         nargs="+",
+                        required=True,
                         help="Residue group 2")
 
     parser.add_argument("--plot-type",
@@ -111,4 +110,4 @@ def parseargs():
 if __name__ == "__main__":
     args = parseargs()
 
-    plot_distances(args)
+    plot_hbonds(args)
