@@ -181,11 +181,33 @@ def plot_projected_timeseries(args):
         plt.ylabel("Projected Value", fontsize=16)
         plt.tight_layout()
         plt.legend()
-        
+
         plt.savefig(args.figure_fl,
                     DPI=300)
 
+def plot_pc_magnitudes(args):
+    model = joblib.load(args.model_file)
+    svd = model[SVD_KEY]
+
+    for dim in args.dimensions:
+        plt.clf()
+        components = svd.components_[dim, :]
+        components = components.reshape(554, -1)
+        magnitudes = np.sqrt(np.sum(components**2, axis=1))
+        print magnitudes.shape
+        plt.plot(magnitudes,
+                 label=str(dim))
+        plt.xlabel("Time (frames)", fontsize=16)
+        plt.ylabel("Projected Value", fontsize=16)
+        plt.tight_layout()
+        plt.legend()
+
+        fig_flname = os.path.join(args.figures_dir,
+                                  "pc_components_%s.png" % str(dim))
         
+        plt.savefig(fig_flname,
+                    DPI=300)
+
     
 def parseargs():
     parser = argparse.ArgumentParser()
@@ -274,6 +296,24 @@ def parseargs():
                                 required=True,
                                 help="File from which to load model")
 
+    plot_pc_parser = subparsers.add_parser("plot-pc",
+                                           help="Plot PC values")
+
+    plot_pc_parser.add_argument("--figures-dir",
+                                type=str,
+                                required=True,
+                                help="Figure output directory")
+
+    plot_pc_parser.add_argument("--dimensions",
+                                type=int,
+                                nargs="+",
+                                required=True,
+                                help="Dimensions to plot")
+
+    plot_pc_parser.add_argument("--model-file",
+                                type=str,
+                                required=True,
+                                help="File from which to load model")
     
     return parser.parse_args()
 
@@ -296,6 +336,8 @@ if __name__ == "__main__":
         plot_projections(args)
     elif args.mode == "plot-projected-timeseries":
         plot_projected_timeseries(args)
+    elif args.mode == "plot-pc":
+        plot_pc_magnitudes(args)
     else:
         print "Unknown mode '%s'" % args.mode
         sys.exit(1)
