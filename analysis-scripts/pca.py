@@ -182,8 +182,11 @@ def plot_projected_timeseries(args):
         plt.tight_layout()
         plt.legend()
 
-        plt.savefig(args.figure_fl,
-                    DPI=300)
+    fig_flname = os.path.join(args.figures_dir,
+                              "pca_projected_timeseries.png")
+
+    plt.savefig(fig_flname,
+                DPI=300)
 
 def plot_pc_magnitudes(args):
     model = joblib.load(args.model_file)
@@ -280,10 +283,10 @@ def parseargs():
     proj_ts_parser = subparsers.add_parser("plot-projected-timeseries",
                                            help="Plot projections over time")
 
-    proj_ts_parser.add_argument("--figure-fl",
+    proj_ts_parser.add_argument("--figures-dir",
                                 type=str,
                                 required=True,
-                                help="Figure output file")
+                                help="Figure output directory")
     
     proj_ts_parser.add_argument("--dimensions",
                                 type=int,
