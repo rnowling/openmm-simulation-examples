@@ -44,14 +44,9 @@ def run_corr(args):
                                    periodic=False)
         _, psi_angles = md.compute_psi(traj,
                                    periodic=False)
-        # no dihedral angles for one of the ends
-        phi_angles = phi_angles.reshape(traj.n_frames, traj.n_residues - 1, -1)
-        psi_angles = psi_angles.reshape(traj.n_frames, traj.n_residues - 1, -1)
 
-        dihedrals = np.concatenate([phi_angles, psi_angles],
-                                   axis=2)
-        
-        features = np.sqrt(np.sum((dihedrals - np.mean(dihedrals, axis=0))**2, axis=2))
+        features = np.vstack([phi_angles,
+                              psi_angles])
         
     elif args.feature_type == "transformed-dihedrals":
         _, phi_angles = md.compute_phi(traj,
@@ -64,33 +59,37 @@ def run_corr(args):
         psi_sin = np.sin(psi_angles)
         psi_cos = np.cos(psi_angles)
 
-        # no dihedral angles for one of the ends
-        phi_sin = phi_sin.reshape(traj.n_frames, traj.n_residues - 1, -1)
-        psi_sin = psi_sin.reshape(traj.n_frames, traj.n_residues - 1, -1)
-        phi_cos = phi_cos.reshape(traj.n_frames, traj.n_residues - 1, -1)
-        psi_cos = psi_cos.reshape(traj.n_frames, traj.n_residues - 1, -1)
 
-        dihedrals = np.concatenate([phi_sin,
-                                    phi_cos,
-                                    psi_sin,
-                                    phi_cos],
-                                   axis=2)
+        features = np.vstack([phi_sin,
+                              phi_cos,
+                              psi_sin,
+                              psi_cos])
+
+    elif args.feature_type == "transformed-chi-dihedrals":
+        _, chi_angles = md.compute_chi1(traj,
+                                        periodic=False)
+        chi_sin = np.sin(chi_angles)
+        chi_cos = np.cos(chi_angles)
+        features = np.vstack([chi_sin,
+                              chi_cos])
+
         
-        features = np.sqrt(np.sum((dihedrals - np.mean(dihedrals, axis=0))**2, axis=2))
+
+    print features.shape
 
     print "Computing correlation matrix"
-    corr = np.abs(np.corrcoef(features, rowvar=0))
+    corr = np.corrcoef(features, rowvar=False)
 
     print "Plotting correlation matrix"
     if args.plot_type == "heatmap":
-        plt.pcolor(corr, vmin=0.0, vmax=1.0)
+        plt.pcolor(corr, vmin=-1.0, vmax=1.0)
         plt.colorbar()
         plt.tight_layout()
     elif args.plot_type == "distribution":
         import seaborn as sns
         sns.distplot(np.ravel(corr),
                      kde=False)
-        plt.xlabel("Association", fontsize=16)
+        plt.xlabel("Correlation", fontsize=16)
         plt.ylabel("Occurrences", fontsize=16)
     plt.savefig(args.figure_fl,
                 DPI=300)
@@ -107,7 +106,8 @@ def parseargs():
                         type=str,
                         choices=["positions",
                                  "dihedrals",
-                                 "transformed-dihedrals"],
+                                 "transformed-dihedrals",
+                                 "transformed-chi-dihedrals"],
                         default="transformed-dihedrals",
                         help="Feature type")
 
