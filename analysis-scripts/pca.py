@@ -105,6 +105,44 @@ def compute_transformed_dihedral_pca(args):
               PROJECTION_KEY : projected }
     
     joblib.dump(model, args.model_file)
+
+def compute_transformed_dihedral_chi_pca(args):
+    print "reading trajectory"
+    traj = md.load(args.input_traj,
+                   top=args.pdb_file)
+
+    print "computing dihedrals"
+    _, phi_angles = md.compute_phi(traj,
+                                   periodic=False)
+    _, psi_angles = md.compute_psi(traj,
+                                   periodic=False)
+    _, chi_angles = md.compute_chi1(traj,
+                                    periodic=False)
+
+    phi_sin = np.sin(phi_angles)
+    phi_cos = np.cos(phi_angles)
+    psi_sin = np.sin(psi_angles)
+    psi_cos = np.cos(psi_angles)
+    chi_sin = np.sin(chi_angles)
+    chi_cos = np.cos(chi_angles)
+
+    features = np.hstack([phi_sin,
+                          phi_cos,
+                          psi_sin,
+                          psi_cos,
+                          chi_sin,
+                          chi_cos])
+
+    print "Fitting SVD"
+    svd = TruncatedSVD(n_components = args.n_components)
+    projected = svd.fit_transform(features)
+
+    print "Writing model"
+    model = { SVD_KEY : svd,
+              PROJECTION_KEY : projected }
+    
+    joblib.dump(model, args.model_file)
+
     
 def explained_variance_analysis(args):
     if not os.path.exists(args.figures_dir):
@@ -245,7 +283,8 @@ def parseargs():
                              required=True,
                              choices=["positions",
                                       "dihedrals",
-                                      "transformed-dihedrals"],
+                                      "transformed-dihedrals",
+                                      "transformed-dihedrals-chi"],
                              help="feature-type")
     
     eva_parser = subparsers.add_parser("explained-variance-analysis",
@@ -330,6 +369,8 @@ if __name__ == "__main__":
             compute_dihedral_pca(args)
         elif args.feature_type == "transformed-dihedrals":
             compute_transformed_dihedral_pca(args)
+        elif args.feature_type == "transformed-dihedrals-chi":
+            compute_transformed_dihedral_chi_pca(args)
         else:
             print "Unknown feature type '%s'" % args.feature_type
             sys.exit(1)
