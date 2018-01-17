@@ -312,8 +312,8 @@ def parseargs():
                              choices=["PCA",
                                       "SVD",
                                       "ICA",
-                                      "tICA"]
-                             help="feature-type")
+                                      "tICA"],
+                             help="model type")
     
     comp_parser.add_argument("--lag-time",
                              type=int,
