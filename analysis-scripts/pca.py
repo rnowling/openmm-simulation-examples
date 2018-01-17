@@ -164,7 +164,7 @@ def timescale_analysis(args):
 
     model = data[MODEL_KEY]
     lag_time = data[LAG_TIME_KEY]
-    timescales = model.timescales_ * args.timestep * lag_time
+    timescales = np.abs(model.timescales_ * args.timestep * lag_time)
     log_timescales = np.log10(timescales)
 
     for ts in log_timescales:
