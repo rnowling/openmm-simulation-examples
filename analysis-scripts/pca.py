@@ -24,121 +24,115 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 import mdtraj as md
 import numpy as np
+from sklearn.decomposition import FastICA
+from sklearn.decomposition import PCA
 from sklearn.decomposition import TruncatedSVD
 from sklearn.externals import joblib
+from msmbuilder.decomposition import tICA
 
-SVD_KEY = "svd"
+MODEL_TYPE_KEY = "model-type"
+PCA_MODEL = "pca"
+SVD_MODEL = "svd"
+ICA_MODEL = "ica"
+TICA_MODEL = "tica"
+MODEL_KEY = "model"
 PROJECTION_KEY = "projected-coordinates"
+LAG_TIME_KEY = "lag-time"
 
-def compute_pca(args):
+def extract_features(args):
     print "reading trajectory"
     traj = md.load(args.input_traj,
                    top=args.pdb_file)
 
-    print "aligning frames"
-    traj.superpose(traj)
+    if args.lag_time:
+        traj = traj[::args.lag_time]
 
-    traj = traj.xyz.reshape(traj.n_frames,
-                            traj.n_atoms * 3)
+    if args.feature_type == "positions":
+        print "aligning frames"
+        traj.superpose(traj)
 
-    print "Fitting SVD"
-    svd = TruncatedSVD(n_components = args.n_components)
-    projected = svd.fit_transform(traj)
+        features = traj.xyz.reshape(traj.n_frames,
+                                    traj.n_atoms * 3)
 
-    print "Writing model"
-    model = { SVD_KEY : svd,
-              PROJECTION_KEY : projected }
+    elif args.feature_type == "transformed-dihedrals":
+        print "computing dihedrals"
+        _, phi_angles = md.compute_phi(traj,
+                                       periodic=False)
+        _, psi_angles = md.compute_psi(traj,
+                                       periodic=False)
+
+        phi_sin = np.sin(phi_angles)
+        phi_cos = np.cos(phi_angles)
+        psi_sin = np.sin(psi_angles)
+        psi_cos = np.cos(psi_angles)
+
+        features = np.hstack([phi_sin,
+                              phi_cos,
+                              psi_sin,
+                              psi_cos])
+
+    elif args.feature_type == "transformed-dihedrals-chi":
+        print "computing dihedrals"
+        _, phi_angles = md.compute_phi(traj,
+                                       periodic=False)
+        _, psi_angles = md.compute_psi(traj,
+                                       periodic=False)
+        _, chi_angles = md.compute_chi1(traj,
+                                        periodic=False)
+
+        phi_sin = np.sin(phi_angles)
+        phi_cos = np.cos(phi_angles)
+        psi_sin = np.sin(psi_angles)
+        psi_cos = np.cos(psi_angles)
+        chi_sin = np.sin(chi_angles)
+        chi_cos = np.cos(chi_angles)
+
+        features = np.hstack([phi_sin,
+                              phi_cos,
+                              psi_sin,
+                              psi_cos,
+                              chi_sin,
+                              chi_cos])
+
+    else:
+        raise Exception, "Unknown feature type '%s'", args.features
+
+    return features
+
+def create_model(args):
+    if args.model == "PCA":
+        model = PCA(n_components = args.n_components)
+        model_type = PCA_MODEL
+
+    elif args.model == "SVD":
+        model = TruncatedSVD(n_components = args.n_components)
+        model_type = SVD_MODEL
+
+    elif args.model == "ICA":
+        model = FastICA(n_components = args.n_components)
+        model_type = ICA_MODEL
+
+    elif args.model == "tICA":
+        model = tICA(n_components = args.n_components, kinetic_mapping=True)
+        model_type = TICA_MODEL
+
+    else:
+        raise Exception, "Unknown model tyope '%s'", args.model
+
+    return model, model_type
+
+def train_model(args):
+    features = extract_features(args)
+
+    model, model_type = create_model(args)
     
-    joblib.dump(model, args.model_file)
-
-def compute_dihedral_pca(args):
-    print "reading trajectory"
-    traj = md.load(args.input_traj,
-                   top=args.pdb_file)
-
-    print "computing dihedrals"
-    _, phi_angles = md.compute_phi(traj,
-                                   periodic=False)
-    _, psi_angles = md.compute_psi(traj,
-                                   periodic=False)
-
-    features = np.hstack([phi_angles,
-                          psi_angles])
-
-    print "Fitting SVD"
-    svd = TruncatedSVD(n_components = args.n_components)
-    projected = svd.fit_transform(features)
+    print "Fitting %s model", model_type
+    projected = model.fit_transform(features)
 
     print "Writing model"
-    model = { SVD_KEY : svd,
-              PROJECTION_KEY : projected }
-    
-    joblib.dump(model, args.model_file)
-
-def compute_transformed_dihedral_pca(args):
-    print "reading trajectory"
-    traj = md.load(args.input_traj,
-                   top=args.pdb_file)
-
-    print "computing dihedrals"
-    _, phi_angles = md.compute_phi(traj,
-                                   periodic=False)
-    _, psi_angles = md.compute_psi(traj,
-                                   periodic=False)
-
-    phi_sin = np.sin(phi_angles)
-    phi_cos = np.cos(phi_angles)
-    psi_sin = np.sin(psi_angles)
-    psi_cos = np.cos(psi_angles)
-
-    features = np.hstack([phi_sin,
-                          phi_cos,
-                          psi_sin,
-                          psi_cos])
-
-    print "Fitting SVD"
-    svd = TruncatedSVD(n_components = args.n_components)
-    projected = svd.fit_transform(features)
-
-    print "Writing model"
-    model = { SVD_KEY : svd,
-              PROJECTION_KEY : projected }
-    
-    joblib.dump(model, args.model_file)
-
-def compute_transformed_dihedral_chi_pca(args):
-    print "reading trajectory"
-    traj = md.load(args.input_traj,
-                   top=args.pdb_file)
-
-    print "computing dihedrals"
-    _, phi_angles = md.compute_phi(traj,
-                                   periodic=False)
-    _, psi_angles = md.compute_psi(traj,
-                                   periodic=False)
-    _, chi_angles = md.compute_chi1(traj,
-                                    periodic=False)
-
-    phi_sin = np.sin(phi_angles)
-    phi_cos = np.cos(phi_angles)
-    psi_sin = np.sin(psi_angles)
-    psi_cos = np.cos(psi_angles)
-    chi_sin = np.sin(chi_angles)
-    chi_cos = np.cos(chi_angles)
-
-    features = np.hstack([phi_sin,
-                          phi_cos,
-                          psi_sin,
-                          psi_cos,
-                          chi_sin,
-                          chi_cos])
-
-    print "Fitting SVD"
-    svd = TruncatedSVD(n_components = args.n_components)
-    projected = svd.fit_transform(features)
-
-    print "Writing model"
-    model = { SVD_KEY : svd,
+    model = { LAG_TIME_KEY : args.lag_time,
+              MODEL_TYPE_KEY : model_type,
+              MODEL_KEY : model,
               PROJECTION_KEY : projected }
     
     joblib.dump(model, args.model_file)
@@ -148,16 +142,41 @@ def explained_variance_analysis(args):
     if not os.path.exists(args.figures_dir):
         os.makedirs(args.figures_dir)
 
-    model = joblib.load(args.model_file)
-    svd = model[SVD_KEY]
+    data = joblib.load(args.model_file)
+    model = data[MODEL_KEY]
 
     plt.clf()
     plt.grid(True)
-    plt.plot(svd.explained_variance_ratio_, "m.-")
+    plt.plot(data.explained_variance_ratio_, "m.-")
     plt.xlabel("Principal Component", fontsize=16)
     plt.ylabel("Explained Variance Ratio", fontsize=16)
     plt.ylim([0., 1.])
     fig_flname = os.path.join(args.figures_dir, "pca_explained_variance_ratios.png")
+    plt.savefig(fig_flname,
+                DPI=300)
+
+def timescale_analysis(args):
+    if not os.path.exists(args.figures_dir):
+        os.makedirs(args.figures_dir)
+
+    data = joblib.load(args.model_file)
+    if data[MODEL_TYPE_KEY] != TICA_MODEL:
+        raise Exception, "Timescales can only be calculated for tICA"
+
+    model = data[MODEL_KEY]
+    timescales = model.timescales * args.timestep
+    log_timescales = np.log10(timescales)
+
+    for ts in log_timescales:
+        plt.plot([0, 1],
+                 [ts, ts],
+                 "k-")
+
+    plt.ylabel("Timescale (log10)", fontsize=16)
+    plt.xlim([0., 1.])
+    plt.ylim([np.floor(min(log_timescales)),
+              np.ceil(max(log_timescales))])
+    fig_flname = os.path.join(args.figures_dir, "timescales.png")
     plt.savefig(fig_flname,
                 DPI=300)
 
@@ -228,7 +247,7 @@ def plot_projected_timeseries(args):
 
 def plot_pc_magnitudes(args):
     model = joblib.load(args.model_file)
-    svd = model[SVD_KEY]
+    svd = model[MODEL_KEY]
 
     for dim in args.dimensions:
         plt.clf()
@@ -255,8 +274,8 @@ def parseargs():
 
     subparsers = parser.add_subparsers(dest="mode")
 
-    comp_parser = subparsers.add_parser("compute-pca",
-                                        help="Compute PCA")
+    comp_parser = subparsers.add_parser("train-model",
+                                        help="Train model")
 
     comp_parser.add_argument("--n-components",
                              type=int,
@@ -282,10 +301,14 @@ def parseargs():
                              type=str,
                              required=True,
                              choices=["positions",
-                                      "dihedrals",
                                       "transformed-dihedrals",
                                       "transformed-dihedrals-chi"],
                              help="feature-type")
+
+    comp_parser.add_argument("--lag-time",
+                             type=int,
+                             default=1,
+                             help="Subsample trajectory")
     
     eva_parser = subparsers.add_parser("explained-variance-analysis",
                                        help="Plot explained variances of PCs")
@@ -299,6 +322,24 @@ def parseargs():
                             type=str,
                             required=True,
                             help="File from which to load model")
+
+    ts_parser = subparsers.add_parser("timescale-analysis",
+                                      help="Plot tICA timescales")
+
+    ts_parser.add_argument("--figures-dir",
+                           type=str,
+                           required=True,
+                           help="Figure output directory")
+
+    ts_parser.add_argument("--model-file",
+                           type=str,
+                           required=True,
+                           help="File from which to load model")
+
+    ts_parser.add_argument("--timestep",
+                           type=float,
+                           required=True,
+                           help="Elapsed time between frames")
     
     proj_parser = subparsers.add_parser("plot-projections",
                                         help="Plot structures onto projections")
@@ -362,20 +403,12 @@ def parseargs():
 if __name__ == "__main__":
     args = parseargs()
 
-    if args.mode == "compute-pca":
-        if args.feature_type == "positions":
-            compute_pca(args)
-        elif args.feature_type == "dihedrals":
-            compute_dihedral_pca(args)
-        elif args.feature_type == "transformed-dihedrals":
-            compute_transformed_dihedral_pca(args)
-        elif args.feature_type == "transformed-dihedrals-chi":
-            compute_transformed_dihedral_chi_pca(args)
-        else:
-            print "Unknown feature type '%s'" % args.feature_type
-            sys.exit(1)
+    if args.mode == "train_model":
+        train_model(args)
     elif args.mode == "explained-variance-analysis":
         explained_variance_analysis(args)
+    elif args.mode =="timescale-analysis":
+        timescale_analysis(args)
     elif args.mode == "plot-projections":
         plot_projections(args)
     elif args.mode == "plot-projected-timeseries":
