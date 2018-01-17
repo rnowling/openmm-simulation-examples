@@ -44,9 +44,6 @@ def extract_features(args):
     traj = md.load(args.input_traj,
                    top=args.pdb_file)
 
-    if args.lag_time != 1:
-        traj = traj[::args.lag_time]
-
     if args.feature_type == "positions":
         print "aligning frames"
         traj.superpose(traj)
@@ -120,7 +117,9 @@ def train_model(args):
         projected = model.fit_transform(features)
 
     elif args.model == "tICA":
-        model = tICA(n_components = args.n_components, kinetic_mapping=True)
+        model = tICA(n_components = args.n_components,
+                     kinetic_mapping=True,
+                     lag_time = args.lag_time)
         model_type = TICA_MODEL
         projected = model.fit_transform([features])[0]
 
@@ -164,7 +163,7 @@ def timescale_analysis(args):
 
     model = data[MODEL_KEY]
     lag_time = data[LAG_TIME_KEY]
-    timescales = np.abs(model.timescales_ * args.timestep * lag_time)
+    timescales = np.abs(model.timescales_ * args.timestep)
 
     for ts in timescales:
         plt.semilogy([0, 1],
