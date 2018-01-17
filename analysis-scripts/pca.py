@@ -173,8 +173,8 @@ def timescale_analysis(args):
 
     plt.ylabel("Timescale (log10)", fontsize=16)
     plt.xlim([0., 1.])
-    plt.ylim([np.floor(min(timescales)),
-              np.ceil(max(timescales))])
+    plt.ylim([np.floor(min(np.log10(timescales))),
+              np.ceil(max(np.log10(timescales)))])
     fig_flname = os.path.join(args.figures_dir, "timescales.png")
     plt.savefig(fig_flname,
                 DPI=300)
