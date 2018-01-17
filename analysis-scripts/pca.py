@@ -44,7 +44,7 @@ def extract_features(args):
     traj = md.load(args.input_traj,
                    top=args.pdb_file)
 
-    if args.lag_time:
+    if args.lag_time != 1:
         traj = traj[::args.lag_time]
 
     if args.feature_type == "positions":
@@ -164,7 +164,8 @@ def timescale_analysis(args):
         raise Exception, "Timescales can only be calculated for tICA"
 
     model = data[MODEL_KEY]
-    timescales = model.timescales * args.timestep
+    lag_time = data[LAG_TIME_KEY]
+    timescales = model.timescales * args.timestep * lag_time
     log_timescales = np.log10(timescales)
 
     for ts in log_timescales:
