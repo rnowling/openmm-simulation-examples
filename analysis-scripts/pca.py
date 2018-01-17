@@ -240,7 +240,10 @@ def plot_projected_timeseries(args):
         plt.legend()
 
     fig_flname = os.path.join(args.figures_dir,
-                              "pca_projected_timeseries.png")
+                              "projected_timeseries")
+    for dim in args.dimensions:
+        fig_flname += "_%s" % dim
+    fig_flname += ".png"
 
     plt.savefig(fig_flname,
                 DPI=300)
