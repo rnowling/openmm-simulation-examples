@@ -99,35 +99,34 @@ def extract_features(args):
 
     return features
 
-def create_model(args):
+def train_model(args):
+    features = extract_features(args)
+
+    print "Fitting %s model", args.model
+    
     if args.model == "PCA":
         model = PCA(n_components = args.n_components)
         model_type = PCA_MODEL
+        projected = model.fit_transform(features)
 
     elif args.model == "SVD":
         model = TruncatedSVD(n_components = args.n_components)
         model_type = SVD_MODEL
+        projected = model.fit_transform(features)
 
     elif args.model == "ICA":
         model = FastICA(n_components = args.n_components)
         model_type = ICA_MODEL
+        projected = model.fit_transform(features)
 
     elif args.model == "tICA":
         model = tICA(n_components = args.n_components, kinetic_mapping=True)
         model_type = TICA_MODEL
+        projected = model.fit_transform([features])[0]
 
     else:
         raise Exception, "Unknown model tyope '%s'", args.model
-
-    return model, model_type
-
-def train_model(args):
-    features = extract_features(args)
-
-    model, model_type = create_model(args)
     
-    print "Fitting %s model", model_type
-    projected = model.fit_transform(features)
 
     print "Writing model"
     model = { LAG_TIME_KEY : args.lag_time,
