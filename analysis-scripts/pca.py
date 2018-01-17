@@ -404,7 +404,7 @@ def parseargs():
 if __name__ == "__main__":
     args = parseargs()
 
-    if args.mode == "train_model":
+    if args.mode == "train-model":
         train_model(args)
     elif args.mode == "explained-variance-analysis":
         explained_variance_analysis(args)
