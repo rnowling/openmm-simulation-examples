@@ -306,6 +306,15 @@ def parseargs():
                                       "transformed-dihedrals-chi"],
                              help="feature-type")
 
+    comp_parser.add_argument("--model",
+                             type=str,
+                             required=True,
+                             choices=["PCA",
+                                      "SVD",
+                                      "ICA",
+                                      "tICA"]
+                             help="feature-type")
+    
     comp_parser.add_argument("--lag-time",
                              type=int,
                              default=1,
