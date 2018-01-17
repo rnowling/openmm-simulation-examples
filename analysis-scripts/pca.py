@@ -165,12 +165,11 @@ def timescale_analysis(args):
     model = data[MODEL_KEY]
     lag_time = data[LAG_TIME_KEY]
     timescales = np.abs(model.timescales_ * args.timestep * lag_time)
-    log_timescales = np.log10(timescales)
 
-    for ts in log_timescales:
-        plt.plot([0, 1],
-                 [ts, ts],
-                 "k-")
+    for ts in timescales:
+        plt.semilogy([0, 1],
+                     [ts, ts],
+                     "k-")
 
     plt.ylabel("Timescale (log10)", fontsize=16)
     plt.xlim([0., 1.])
