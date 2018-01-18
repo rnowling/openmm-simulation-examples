@@ -318,6 +318,11 @@ def calculate_transition_matrix(args):
                                  tol=0.00001,
                                  n_init=25)
 
+    pop_counts = np.zeros(args.n_clusters,
+                          dtype=np.int)
+    for idx in labels:
+        pop_counts[i] += 1
+
     counts = np.zeros((args.n_clusters,
                        args.n_clusters),
                       dtype=np.int)
@@ -338,7 +343,8 @@ def calculate_transition_matrix(args):
     timescales = - args.timestep * lag_time / np.log(u[1:])
 
     print "timescales", timescales
-    print "eq dist", v[:, 0]
+    print "eq dist", v[:, 0] / v[:, 0].sum()
+    print "pop counts", pop_counts / pop_counts.sum()
     
 def parseargs():
     parser = argparse.ArgumentParser()
