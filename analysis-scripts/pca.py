@@ -280,9 +280,9 @@ def sweep_clusters(args):
     inertia_values = []
     for k in args.n_clusters:
         print "Clustering with %s states" % k
-        _, _, inertia, _ = k_means(projected[:, args.dimensions],
-                                   k,
-                                   n_jobs=-2)
+        _, _, inertia = k_means(projected[:, args.dimensions],
+                                k,
+                                n_jobs=-2)
         inertia_values.append(inertia)
 
     plt.plot(args.n_clusters,
