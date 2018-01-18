@@ -303,6 +303,28 @@ def sweep_clusters(args):
     plt.savefig(fig_flname,
                 DPI=300)
 
+
+def calculate_transition_matrix(args):
+    data = joblib.load(args.model_file)
+    projected = data[PROJECTION_KEY]
+
+    print "Model type", data[MODEL_TYPE_KEY]
+
+    if not os.path.exists(args.figures_dir):
+        os.makedirs(args.figures_dir)
+
+    _, labels, inertia = k_means(projected[:, args.dimensions],
+                                 args.n_clusters,
+                                 n_jobs=-2)
+
+    transitions = np.zeros((args.n_clusters,
+                            args.n_clusters))
+
+    for i, j in zip(labels[:-1], labels[1:]):
+        transitions[i, j] += 1.0
+
+    print transitions
+
     
 def parseargs():
     parser = argparse.ArgumentParser()
@@ -466,6 +488,25 @@ def parseargs():
                                       type=str,
                                       required=True,
                                       help="File from which to load model")
+
+    tran_matrix_parser = subparsers.add_parser("transition-matrix",
+                                               help="Calculate transition matrix")
+
+    tran_matrix_parser.add_argument("--dimensions",
+                                    type=int,
+                                    nargs="+",
+                                    required=True,
+                                    help="Dimensions to use in clustering")
+
+    tran_matrix_parser.add_argument("--n-clusters",
+                                    type=int,
+                                    required=True,
+                                    help="Number of clusters to use")
+    
+    tran_matrix_parser.add_argument("--model-file",
+                                    type=str,
+                                    required=True,
+                                    help="File from which to load model")
     
     return parser.parse_args()
 
@@ -486,6 +527,8 @@ if __name__ == "__main__":
         plot_pc_magnitudes(args)
     elif args.mode == "sweep-clusters":
         sweep_clusters(args)
+    elif args.mode == "transition-matrix":
+        calculate_transition_matrix(args)
     else:
         print "Unknown mode '%s'" % args.mode
         sys.exit(1)
