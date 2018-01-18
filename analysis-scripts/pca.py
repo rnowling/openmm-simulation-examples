@@ -310,9 +310,6 @@ def calculate_transition_matrix(args):
 
     print "Model type", data[MODEL_TYPE_KEY]
 
-    if not os.path.exists(args.figures_dir):
-        os.makedirs(args.figures_dir)
-
     _, labels, inertia = k_means(projected[:, args.dimensions],
                                  args.n_clusters,
                                  n_jobs=-2)
