@@ -24,6 +24,7 @@ matplotlib.use("PDF")
 import matplotlib.pyplot as plt
 import mdtraj as md
 import numpy as np
+from sklearn.cluster import k_means
 from sklearn.decomposition import FastICA
 from sklearn.decomposition import PCA
 from sklearn.decomposition import TruncatedSVD
@@ -99,7 +100,7 @@ def extract_features(args):
 def train_model(args):
     features = extract_features(args)
 
-    print "Fitting %s model", args.model
+    print "Fitting %s model" % args.model
     
     if args.model == "PCA":
         model = PCA(n_components = args.n_components)
@@ -269,6 +270,36 @@ def plot_pc_magnitudes(args):
         plt.savefig(fig_flname,
                     DPI=300)
 
+def sweep_clusters(args):
+    data = joblib.load(args.model_file)
+    projected = data[PROJECTION_KEY]
+
+    if not os.path.exists(args.figures_dir):
+        os.makedirs(args.figures_dir)
+
+    inertia_values = []
+    for k in args.n_clusters:
+        print "Clustering with %s states" % k
+        _, _, inertia, _ = k_means(projected[:, args.dimensions],
+                                   n_jobs=-2)
+        inertia_values.append(inertia)
+
+    plt.plot(args.n_clusters,
+             inertia_values,
+             "k.-")
+    plt.xlabel("Number of Clusters", fontsize=16)
+    plt.ylabel("Inertia", fontsize=16)
+    
+
+    fig_flname = os.path.join(args.figures_dir,
+                              "cluster_inertia")
+    for dim in args.dimensions:
+        fig_flname += "_%s" % dim
+    fig_flname += ".png"
+
+    plt.savefig(fig_flname,
+                DPI=300)
+
     
 def parseargs():
     parser = argparse.ArgumentParser()
@@ -407,6 +438,31 @@ def parseargs():
                                 type=str,
                                 required=True,
                                 help="File from which to load model")
+
+    cluster_sweep_parser = subparsers.add_parser("sweep-clusters",
+                                                 help="Calculate inertia for different numbers of states")
+
+    cluster_sweep_parser.add_argument("--figures-dir",
+                                      type=str,
+                                      required=True,
+                                      help="Figure output directory")
+
+    cluster_sweep_parser.add_argument("--dimensions",
+                                      type=int,
+                                      nargs="+",
+                                      required=True,
+                                      help="Dimensions to use in clustering")
+
+    cluster_sweep_parser.add_argument("--n-clusters",
+                                      type=int,
+                                      nargs="+",
+                                      required=True,
+                                      help="Number of clusters to use")
+    
+    cluster_sweep_parser.add_argument("--model-file",
+                                      type=str,
+                                      required=True,
+                                      help="File from which to load model")
     
     return parser.parse_args()
 
@@ -425,6 +481,8 @@ if __name__ == "__main__":
         plot_projected_timeseries(args)
     elif args.mode == "plot-pc":
         plot_pc_magnitudes(args)
+    elif args.mode == "sweep-clusters":
+        sweep_clusters(args)
     else:
         print "Unknown mode '%s'" % args.mode
         sys.exit(1)
