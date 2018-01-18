@@ -344,7 +344,7 @@ def calculate_transition_matrix(args):
 
     print "timescales", timescales
     print "eq dist", v[:, 0] / v[:, 0].sum()
-    print "pop counts", pop_counts / pop_counts.sum()
+    print "pop counts", pop_counts.astype(float) / pop_counts.sum()
     
 def parseargs():
     parser = argparse.ArgumentParser()
