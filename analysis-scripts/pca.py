@@ -336,7 +336,7 @@ def calculate_transition_matrix(args):
     timescales = - args.timestep * lag_time / np.log(u[1:])
 
     print "timescales", timescales
-    print "eq dist", v[0]
+    print "eq dist", v[:, 0]
     
 def parseargs():
     parser = argparse.ArgumentParser()
