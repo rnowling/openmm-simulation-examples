@@ -314,7 +314,8 @@ def calculate_transition_matrix(args):
 
     _, labels, inertia = k_means(projected[:, args.dimensions],
                                  args.n_clusters,
-                                 n_jobs=-2)
+                                 n_jobs=-2,
+                                 verbose=True)
 
     counts = np.zeros((args.n_clusters,
                        args.n_clusters),
