@@ -318,7 +318,8 @@ def calculate_transition_matrix(args):
                             args.n_clusters))
 
     for i, j in zip(labels[:-1], labels[1:]):
-        transitions[i, j] += 1.0
+        if i != j:
+            transitions[i, j] += 1.0
 
     print transitions
 
