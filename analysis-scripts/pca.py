@@ -274,6 +274,8 @@ def sweep_clusters(args):
     data = joblib.load(args.model_file)
     projected = data[PROJECTION_KEY]
 
+    print "Model type", data[MODEL_TYPE_KEY]
+
     if not os.path.exists(args.figures_dir):
         os.makedirs(args.figures_dir)
 
