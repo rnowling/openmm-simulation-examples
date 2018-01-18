@@ -321,7 +321,7 @@ def calculate_transition_matrix(args):
     pop_counts = np.zeros(args.n_clusters,
                           dtype=np.int)
     for idx in labels:
-        pop_counts[i] += 1
+        pop_counts[idx] += 1
 
     counts = np.zeros((args.n_clusters,
                        args.n_clusters),
