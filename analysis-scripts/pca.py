@@ -30,6 +30,7 @@ from sklearn.decomposition import PCA
 from sklearn.decomposition import TruncatedSVD
 from sklearn.externals import joblib
 from msmbuilder.decomposition import tICA
+import numpy.linalg as LA
 
 MODEL_TYPE_KEY = "model-type"
 PCA_MODEL = "pca"
@@ -307,6 +308,7 @@ def sweep_clusters(args):
 def calculate_transition_matrix(args):
     data = joblib.load(args.model_file)
     projected = data[PROJECTION_KEY]
+    lag_time = data[LAG_TIME_KEY]
 
     print "Model type", data[MODEL_TYPE_KEY]
 
@@ -314,14 +316,25 @@ def calculate_transition_matrix(args):
                                  args.n_clusters,
                                  n_jobs=-2)
 
-    transitions = np.zeros((args.n_clusters,
-                            args.n_clusters),
-                           dtype=np.int)
+    counts = np.zeros((args.n_clusters,
+                       args.n_clusters),
+                      dtype=np.int)
 
     for i, j in zip(labels[:-1], labels[1:]):
-        transitions[i, j] += 1.0
+        counts[i, j] += 1
+
+    print counts
+
+    counts = counts.astype(float)
+    rev_counts = 0.5 * (counts + counts.T)
+    transitions = rev_counts / rev_counts.sum(axis=1)[:, None]
 
     print transitions
+
+    u, v = LA.eigh(transitions)
+    timescales = - args.timestep * lag_time / np.log(u[1:])
+
+    print timescales
 
     
 def parseargs():
@@ -505,6 +518,11 @@ def parseargs():
                                     type=str,
                                     required=True,
                                     help="File from which to load model")
+
+    tran_matrix_parser.add_argument("--timestep",
+                                    type=float,
+                                    required=True,
+                                    help="Elapsed time between frames")
     
     return parser.parse_args()
 
