@@ -332,9 +332,12 @@ def calculate_transition_matrix(args):
     print transitions
 
     u, v = LA.eigh(transitions)
-    timescales = - args.timestep * lag_time / np.log(u[1:])
 
-    print timescales
+    print u
+    
+    timescales = - args.timestep * lag_time / np.log(u[1:])
+    
+    print timescales[:-1]
 
     
 def parseargs():
