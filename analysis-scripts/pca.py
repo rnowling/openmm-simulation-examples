@@ -348,6 +348,17 @@ def calculate_transition_matrix(args):
     print "timescales", timescales
     print "eq dist", v[:, 0] / v[:, 0].sum()
     print "pop counts", pop_counts.astype(float) / pop_counts.sum()
+
+    if args.tran_plot_fl:
+        plt.plot(xrange(1, len(labels) + 1),
+                 labels,
+                 "k")
+
+        plt.xlabel("Frames", fontsize=16)
+        plt.ylabel("State", fontsize=16)
+        plt.grid(True)
+        plt.savefig(args.tran_plot_fl,
+                    DPI=300)
     
 def parseargs():
     parser = argparse.ArgumentParser()
@@ -535,6 +546,10 @@ def parseargs():
                                     type=float,
                                     required=True,
                                     help="Elapsed time between frames")
+
+    tran_matrix_parser.add_argument("--tran-plot-fl",
+                                    type=str,
+                                    help="Plot transitions")
     
     return parser.parse_args()
 
