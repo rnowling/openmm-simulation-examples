@@ -315,11 +315,11 @@ def calculate_transition_matrix(args):
                                  n_jobs=-2)
 
     transitions = np.zeros((args.n_clusters,
-                            args.n_clusters))
+                            args.n_clusters),
+                           dtype=np.int)
 
     for i, j in zip(labels[:-1], labels[1:]):
-        if i != j:
-            transitions[i, j] += 1.0
+        transitions[i, j] += 1.0
 
     print transitions
 
