@@ -361,6 +361,7 @@ def calculate_transition_matrix(args):
                     DPI=300)
 
     if args.timescales_plot_fl:
+        plt.clf()
         for ts in timescales:
             plt.semilogy([0, 1],
                          [ts, ts],
