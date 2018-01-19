@@ -374,6 +374,17 @@ def calculate_transition_matrix(args):
             plt.savefig(args.timescales_plot_fl,
                         DPI=300)
 
+    if args.states_fl:
+        joblib.dump(args.states_fl, labels)
+
+    if args.connected_states_fl:
+        with open(args.connected_states_fl, "w") as fl:
+            for i in xrange(args.n_clusters - 1):
+                for j in xrange(i + 1, args.n_clusters):
+                    if counts[i, j] > 0:
+                        fl.write("%s\t%s\n" % (i, j))
+                    
+
     
 def parseargs():
     parser = argparse.ArgumentParser()
@@ -570,6 +581,13 @@ def parseargs():
                                     type=str,
                                     help="Plot MSM timescales")
 
+    tran_matrix_parser.add_argument("--label-fl",
+                                    type=str,
+                                    help="Write frame labels")
+
+    tran_matrix_parser.add_argument("--connected-states-fl",
+                                    type=str,
+                                    help="Write out connected states")
     
     return parser.parse_args()
 
