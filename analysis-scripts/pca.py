@@ -330,36 +330,30 @@ def calculate_transition_matrix(args):
                        args.n_clusters),
                       dtype=np.int)
 
-    """
-    msm_lag_time = 1
-    for i in xrange(0, len(labels), msm_lag_time):
-        j = i + msm_lag_time
-        if j < len(labels):
-            from_ = labels[i]
-            to_ = labels[j]
-            counts[from_, to_] += 1
-    """
-
-    for i, j in zip(labels[:-1], labels[1:]):
-        counts[i, j] += 1
+    for from_, to_ in zip(labels[:-1], labels[1:]):
+        counts[to_, from_] += 1
 
     print counts
 
     counts = counts.astype(np.float64)
-    rev_counts = counts + counts.T
+    rev_counts = 0.5 * (counts + counts.T)
+
+    # normalize columns
     transitions = rev_counts / rev_counts.sum(axis=1)[:, None]
 
-    u, v = LA.eigh(transitions)
+    # get right eigenvectors
+    u, v = LA.eig(transitions)
+
+    # re-order in descending order
+    sorted_idx = np.argsort(u)[::-1]    
+    u = u[sorted_idx]
+    v = v[:, sorted_idx]
     
-    u = u[::-1]
-    v = v[:, ::-1]
     timescales = - args.timestep * lag_time / np.log(u[1:])
 
     print "timescales", timescales
     print "eq dist", v[:, 0] / v[:, 0].sum()
     print "pop counts", pop_counts.astype(float) / pop_counts.sum()
-
-    timescales = np.abs(timescales)
 
     if args.tran_plot_fl:
         plt.plot(xrange(1, len(labels) + 1),
