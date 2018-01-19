@@ -28,9 +28,6 @@ from scipy import stats
 from sklearn.externals import joblib
 
 def run_test(args):
-    if len(args.boundaries) != 4:
-        raise Exception, "Need four boundary points"
-
     n_bins = 10
     bins = np.linspace(-np.pi, np.pi, num=n_bins + 1)
     print bins
