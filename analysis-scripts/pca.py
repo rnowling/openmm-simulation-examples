@@ -172,7 +172,7 @@ def timescale_analysis(args):
                      [ts, ts],
                      "k-")
 
-    plt.ylabel("Timescale (log10)", fontsize=16)
+    plt.ylabel("Timescale (ns, log10)", fontsize=16)
     plt.xlim([0., 1.])
     plt.ylim([np.power(10., np.floor(min(np.log10(timescales)))),
               np.power(10., np.ceil(max(np.log10(timescales))))])
@@ -359,6 +359,20 @@ def calculate_transition_matrix(args):
         plt.grid(True)
         plt.savefig(args.tran_plot_fl,
                     DPI=300)
+
+    if args.timescales_plot_fl:
+        for ts in timescales:
+            plt.semilogy([0, 1],
+                         [ts, ts],
+                         "k-")
+
+            plt.ylabel("Timescale (ns, log10)", fontsize=16)
+            plt.xlim([0., 1.])
+            plt.ylim([np.power(10., np.floor(min(np.log10(timescales)))),
+                      np.power(10., np.ceil(max(np.log10(timescales))))])
+            plt.savefig(args.timescales_plot_fl,
+                        DPI=300)
+
     
 def parseargs():
     parser = argparse.ArgumentParser()
@@ -550,6 +564,11 @@ def parseargs():
     tran_matrix_parser.add_argument("--tran-plot-fl",
                                     type=str,
                                     help="Plot transitions")
+
+    tran_matrix_parser.add_argument("--timescales-plot-fl",
+                                    type=str,
+                                    help="Plot MSM timescales")
+
     
     return parser.parse_args()
 
