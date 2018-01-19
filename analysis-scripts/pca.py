@@ -339,6 +339,8 @@ def calculate_transition_matrix(args):
     rev_counts = 0.5 * (counts + counts.T)
     transitions = rev_counts / rev_counts.sum(axis=1)[:, None]
 
+    print transitions
+
     u, v = LA.eigh(transitions)
 
     u = u[::-1]
