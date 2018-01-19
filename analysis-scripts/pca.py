@@ -374,8 +374,8 @@ def calculate_transition_matrix(args):
             plt.savefig(args.timescales_plot_fl,
                         DPI=300)
 
-    if args.states_fl:
-        joblib.dump(args.states_fl, labels)
+    if args.label_fl:
+        joblib.dump(args.label_fl, labels)
 
     if args.connected_states_fl:
         with open(args.connected_states_fl, "w") as fl:
