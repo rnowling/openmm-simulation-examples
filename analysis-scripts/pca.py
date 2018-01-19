@@ -345,8 +345,9 @@ def calculate_transition_matrix(args):
 
     print counts
 
-    counts = counts.astype(float)
+    counts = counts.astype(np.float64)
     rev_counts = 0.5 * (counts + counts.T)
+    print rev_counts
     transitions = rev_counts / rev_counts.sum(axis=1)[:, None]
 
     u, v = LA.eigh(transitions.T)
@@ -354,11 +355,13 @@ def calculate_transition_matrix(args):
     u = u[::-1]
     v = v[:, ::-1]
     print u
-    timescales = np.abs(- args.timestep * lag_time / np.log(u[1:]))
+    timescales = - args.timestep * lag_time / np.log(u[1:])
 
     print "timescales", timescales
     print "eq dist", v[:, 0] / v[:, 0].sum()
     print "pop counts", pop_counts.astype(float) / pop_counts.sum()
+
+    timescales = np.abs(timescales)
 
     if args.tran_plot_fl:
         plt.plot(xrange(1, len(labels) + 1),
