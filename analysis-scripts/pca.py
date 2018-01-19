@@ -347,14 +347,15 @@ def calculate_transition_matrix(args):
 
     counts = counts.astype(np.float64)
     rev_counts = 0.5 * (counts + counts.T)
-    print rev_counts
     transitions = rev_counts / rev_counts.sum(axis=1)[:, None]
 
-    u, v = LA.eigh(transitions.T)
+    u, v = LA.eigh(transitions)
+    reassembled = np.dot(u, v)
+    error = np.max(transitions - reassembled)
+    print error
 
     u = u[::-1]
     v = v[:, ::-1]
-    print u
     timescales = - args.timestep * lag_time / np.log(u[1:])
 
     print "timescales", timescales
