@@ -350,7 +350,8 @@ def calculate_transition_matrix(args):
     v = v[:, sorted_idx]
 
     print u
-    print v
+    for i in xrange(args.n_clusters):
+        print v[:, i]
     
     timescales = - args.timestep * lag_time / np.log(u[1:])
 
