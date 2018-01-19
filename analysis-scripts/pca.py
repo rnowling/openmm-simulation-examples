@@ -330,7 +330,7 @@ def calculate_transition_matrix(args):
                        args.n_clusters),
                       dtype=np.int)
 
-    msm_lag_time = 10
+    msm_lag_time = 1
     for i in xrange(0, len(labels), msm_lag_time):
         j = i + msm_lag_time
         if j < len(labels):
