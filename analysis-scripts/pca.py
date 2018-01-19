@@ -331,7 +331,7 @@ def calculate_transition_matrix(args):
                       dtype=np.int)
 
     msm_lag_time = 10
-    for i in xrange(0, msm_lag_time, len(labels)):
+    for i in xrange(0, len(labels), msm_lag_time):
         j = i + msm_lag_time
         if j < len(labels):
             from_ = labels[i]
