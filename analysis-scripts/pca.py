@@ -375,7 +375,7 @@ def calculate_transition_matrix(args):
                         DPI=300)
 
     if args.label_fl:
-        joblib.dump(args.label_fl, labels)
+        joblib.dump(labels, args.label_fl)
 
     if args.connected_states_fl:
         with open(args.connected_states_fl, "w") as fl:
