@@ -350,13 +350,7 @@ def calculate_transition_matrix(args):
     transitions = rev_counts / rev_counts.sum(axis=1)[:, None]
 
     u, v = LA.eigh(transitions)
-    reassembled = np.dot(u, v)
-    error = np.max(transitions - reassembled)
-    print error
-    reassembled = np.dot(v, u)
-    error = np.max(transitions - reassembled)
-    print error
-
+    print u.sum(), np.diag(transitions).sum()
     
     u = u[::-1]
     v = v[:, ::-1]
