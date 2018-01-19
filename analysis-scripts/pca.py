@@ -348,6 +348,8 @@ def calculate_transition_matrix(args):
     sorted_idx = np.argsort(u)[::-1]    
     u = u[sorted_idx]
     v = v[:, sorted_idx]
+
+    print u
     
     timescales = - args.timestep * lag_time / np.log(u[1:])
 
