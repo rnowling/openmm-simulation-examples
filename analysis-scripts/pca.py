@@ -332,7 +332,7 @@ def calculate_transition_matrix(args):
 
     msm_lag_time = 10
     for i in xrange(0, msm_lag_time, len(labels)):
-        j = i + ms_lag_time
+        j = i + msm_lag_time
         if j < len(labels):
             counts[i, j] += 1
 
