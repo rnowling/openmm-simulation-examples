@@ -330,8 +330,11 @@ def calculate_transition_matrix(args):
                        args.n_clusters),
                       dtype=np.int)
 
-    for i, j in zip(labels[:-1], labels[1:]):
-        counts[i, j] += 1
+    msm_lag_time = 10
+    for i in xrange(0, msm_lag_time, len(labels)):
+        j = i + ms_lag_time
+        if j < len(labels):
+            counts[i, j] += 1
 
     print counts
 
