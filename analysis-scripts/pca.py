@@ -353,7 +353,11 @@ def calculate_transition_matrix(args):
     reassembled = np.dot(u, v)
     error = np.max(transitions - reassembled)
     print error
+    reassembled = np.dot(v, u)
+    error = np.max(transitions - reassembled)
+    print error
 
+    
     u = u[::-1]
     v = v[:, ::-1]
     timescales = - args.timestep * lag_time / np.log(u[1:])
