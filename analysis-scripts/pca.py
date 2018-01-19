@@ -147,7 +147,7 @@ def explained_variance_analysis(args):
 
     plt.clf()
     plt.grid(True)
-    plt.plot(data.explained_variance_ratio_, "m.-")
+    plt.plot(model.explained_variance_ratio_, "m.-")
     plt.xlabel("Principal Component", fontsize=16)
     plt.ylabel("Explained Variance Ratio", fontsize=16)
     plt.ylim([0., 1.])
