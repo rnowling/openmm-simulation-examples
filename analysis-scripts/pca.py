@@ -349,7 +349,7 @@ def calculate_transition_matrix(args):
     print transitions.dtype
     print transitions
 
-    u, v = LA.eigh(transitions)
+    u, v = LA.eigh(transitions.T)
 
     u = u[::-1]
     v = v[:, ::-1]
