@@ -343,6 +343,7 @@ def calculate_transition_matrix(args):
 
     u = u[::-1]
     v = v[:, ::-1]
+    print u
     timescales = np.abs(- args.timestep * lag_time / np.log(u[1:]))
 
     print "timescales", timescales
