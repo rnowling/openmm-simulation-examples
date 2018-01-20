@@ -72,12 +72,14 @@ class MarkovModel(object):
         transitions = sym_counts / sym_counts.sum(axis=1)[:, None]
 
         # get right eigenvectors
-        u, v = LA.eig(transitions)
+        u, v = LA.eig(transitions.T)
 
         # re-order in descending order
         sorted_idx = np.argsort(u)[::-1]    
         u = u[sorted_idx]
         v = v[:, sorted_idx]
+
+        print u
 
         self.timescales = - self.timestep * self.stride / np.log(u[1:])
         self.equilibrium_dist = v[:, 0] / v[:, 0].sum()
