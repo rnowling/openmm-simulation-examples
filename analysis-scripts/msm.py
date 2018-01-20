@@ -120,9 +120,6 @@ def sweep_lag_times(args):
 
     print "Model type", data[MODEL_TYPE_KEY]
 
-    if not os.path.exists(args.figures_dir):
-        os.makedirs(args.figures_dir)
-
     timescales = []
     data = projected[:, args.dimensions]
     for stride in args.stride:
@@ -208,7 +205,7 @@ def parseargs():
     lag_time_sweep_parser.add_argument("--timestep",
                                        type=float,
                                        required=True,
-                                       help="Elapsed time between frames")
+                                       help="Elapsed time in ns between frames")
     
     lag_time_sweep_parser.add_argument("--figure-fl",
                                        type=str,
