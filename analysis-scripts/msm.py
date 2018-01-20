@@ -43,18 +43,18 @@ class MarkovModel(object):
 
     def fit(self, frames):
         _, labels, inertia = k_means(frames,
-                                     self.n_clusters,
+                                     self.n_states,
                                      n_jobs=-2,
                                      tol=0.00001,
                                      n_init=25)
 
-        self.obs_pop_counts = np.zeros(self.n_clusters,
+        self.obs_pop_counts = np.zeros(self.n_states,
                                   dtype=np.int)
         for idx in labels:
             self.obs_pop_counts[idx] += 1
 
-        counts = np.zeros((self.n_clusters,
-                           self.n_clusters))
+        counts = np.zeros((self.n_states,
+                           self.n_states))
 
         for i, from_ in enumerate(labels):
             to_ = from_ + self.stride
