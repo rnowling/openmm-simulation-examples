@@ -74,7 +74,7 @@ class MarkovModel(object):
         self.transitions = self.sym_counts / self.sym_counts.sum(axis=1)[:, None]
 
         # get right eigenvectors
-        u, v = LA.eig(self.transitions)
+        u, v = LA.eig(self.transitions.T)
 
         # re-order in descending order
         sorted_idx = np.argsort(u)[::-1]    
