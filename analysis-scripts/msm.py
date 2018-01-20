@@ -83,6 +83,9 @@ class MarkovModel(object):
 
         self.timescales = - self.timestep * self.stride / np.log(u[1:])
         self.equilibrium_dist = v[:, 0] / v[:, 0].sum()
+
+        print u
+        print self.equilibrium_dist
         
 
 def sweep_clusters(args):
