@@ -127,7 +127,7 @@ def sweep_lag_times(args):
                                                                   stride)
         msm = MarkovModel(args.n_states,
                           args.timestep,
-                          stide)
+                          stride)
         msm.fit(data)
         timescales.append(msm.timescales)
 
