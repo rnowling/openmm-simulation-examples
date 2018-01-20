@@ -122,7 +122,7 @@ def sweep_lag_times(args):
 
     timescales = []
     data = projected[:, args.dimensions]
-    for stride in args.stride:
+    for stride in args.strides:
         print "Training MSM with with %s states and stride %s" % (args.n_states,
                                                                   stride)
         msm = MarkovModel(args.n_states,
@@ -133,7 +133,7 @@ def sweep_lag_times(args):
 
     timescales = np.array(timescales)
     lag_times = []
-    for stride in args.stride:
+    for stride in args.strides:
         lag_times.append(stride * args.timestep)
 
     for i in args.n_states:
