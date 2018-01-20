@@ -42,37 +42,37 @@ class MarkovModel(object):
         self.stride = stride
 
     def fit(self, frames):
-        _, labels, inertia = k_means(frames,
-                                     self.n_states,
-                                     n_jobs=-2,
-                                     tol=0.00001,
-                                     n_init=25)
+        _, self.labels, inertia = k_means(frames,
+                                          self.n_states,
+                                          n_jobs=-2,
+                                          tol=0.00001,
+                                          n_init=25)
 
         self.obs_pop_counts = np.zeros(self.n_states,
                                   dtype=np.int)
-        for idx in labels:
+        for idx in self.labels:
             self.obs_pop_counts[idx] += 1
 
         counts = np.zeros((self.n_states,
                            self.n_states))
 
-        for i, from_ in enumerate(labels):
+        for i, from_ in enumerate(self.labels):
             j = i + self.stride
-            if j < len(labels):
-                to_ = labels[j]
+            if j < len(self.labels):
+                to_ = self.labels[j]
                 counts[to_, from_] += 1
 
         # for prettier printing
         print counts.astype(np.int32)
 
         # force symmetry
-        sym_counts = 0.5 * (counts + counts.T)
+        self.sym_counts = 0.5 * (counts + counts.T)
 
         # normalize columns
-        transitions = sym_counts / sym_counts.sum(axis=1)[:, None]
+        self.transitions = self.sym_counts / self.sym_counts.sum(axis=1)[:, None]
 
         # get right eigenvectors
-        u, v = LA.eig(transitions)
+        u, v = LA.eig(self.transitions)
 
         # re-order in descending order
         sorted_idx = np.argsort(u)[::-1]    
@@ -148,6 +148,20 @@ def sweep_lag_times(args):
     plt.savefig(args.figure_fl,
                 DPI=300)
 
+def train_model(args):
+    data = joblib.load(args.model_file)
+    projected = data[PROJECTION_KEY]
+
+    print "Model type", data[MODEL_TYPE_KEY]
+
+    data = projected[:, args.dimensions]
+    msm = MarkovModel(args.n_states,
+                      args.timestep,
+                      args.stride)
+    msm.fit(data)
+
+    joblib.dump(msm, args.msm_model_file)
+
 def parseargs():
     parser = argparse.ArgumentParser()
 
@@ -212,6 +226,40 @@ def parseargs():
                                        type=str,
                                        help="Plot timescales",
                                        required=True)
+
+    train_parser = subparser.add_parser("train-model",
+                                        help="Train and save a model")
+
+    train_parser.add_argument("--dimensions",
+                              type=int,
+                              nargs="+",
+                              required=True,
+                              help="Dimensions to use in clustering")
+
+    train_parser.add_argument("--stride",
+                              type=int,
+                              required=True,
+                              help="Strides to use when computing transitions")
+
+    train_parser.add_argument("--n-states",
+                              type=int,
+                              required=True,
+                              help="Number of states to use")
+    
+    train_parser.add_argument("--model-file",
+                              type=str,
+                              required=True,
+                              help="File from which to load model")
+
+    train_parser.add_argument("--msm-model-file",
+                              type=str,
+                              required=True,
+                              help="File to which to save MSM model")
+
+    train_parser.add_argument("--timestep",
+                              type=float,
+                              required=True,
+                              help="Elapsed time in ns between frames")
     
     return parser.parse_args()
 
@@ -223,6 +271,8 @@ if __name__ == "__main__":
         sweep_clusters(args)
     elif args.mode == "sweep-lag-times":
         sweep_lag_times(args)
+    elif args.mode == "train-model":
+        train_model(args)
     else:
         print "Unknown mode '%s'" % args.mode
         sys.exit(1)
