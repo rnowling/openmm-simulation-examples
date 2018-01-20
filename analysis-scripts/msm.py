@@ -81,6 +81,8 @@ class MarkovModel(object):
         u = u[sorted_idx]
         v = v[:, sorted_idx]
 
+        print v.sum(axis=0)
+
         self.timescales = - self.timestep * self.stride / np.log(u[1:])
         self.equilibrium_dist = v[:, 0] / v[:, 0].sum()
 
