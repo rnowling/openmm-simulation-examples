@@ -57,8 +57,9 @@ class MarkovModel(object):
                            self.n_states))
 
         for i, from_ in enumerate(labels):
-            to_ = from_ + self.stride
-            if to_ < len(labels):
+            j = i + self.stride
+            if j < len(labels):
+                to_ = labels[j]
                 counts[to_, from_] += 1
 
         # for prettier printing
