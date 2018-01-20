@@ -22,10 +22,12 @@ import sys
 import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
+import networkx as nx
+import numpy.linalg as LA
 import numpy as np
 from sklearn.cluster import k_means
 from sklearn.externals import joblib
-import numpy.linalg as LA
+
 
 MODEL_TYPE_KEY = "model-type"
 PCA_MODEL = "pca"
@@ -162,6 +164,16 @@ def train_model(args):
 
     joblib.dump(msm, args.msm_model_file)
 
+def plot_msm_network(args):
+    msm = joblib.load(args.msm_model_file)
+
+    G = nx.DiGraph(msm.transitions)
+
+    nx.draw(G)
+
+    plt.savefig(args.figure_fl,
+                DPI=300)
+
 def parseargs():
     parser = argparse.ArgumentParser()
 
@@ -260,6 +272,19 @@ def parseargs():
                               type=float,
                               required=True,
                               help="Elapsed time in ns between frames")
+
+    draw_parser = subparsers.add_parser("draw-network",
+                                        help="Train network model")
+
+    draw_parser.add_argument("--msm-model-file",
+                             type=str,
+                             required=True,
+                             help="File from which to load MSM model")
+    
+    draw_parser.add_argument("--figure-fl",
+                             type=str,
+                             required=True,
+                             help="Plot filename")
     
     return parser.parse_args()
 
@@ -273,6 +298,8 @@ if __name__ == "__main__":
         sweep_lag_times(args)
     elif args.mode == "train-model":
         train_model(args)
+    elif args.mode == "draw-network":
+        plot_msm_network(args)
     else:
         print "Unknown mode '%s'" % args.mode
         sys.exit(1)
