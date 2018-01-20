@@ -133,12 +133,11 @@ def sweep_lag_times(args):
         timescales.append(msm.timescales)
 
     timescales = np.array(timescales)
-    lag_times = []
-    for stride in args.strides:
-        lag_times.append(stride * args.timestep)
-
-    for i in xrange(args.n_states):
-        plt.semilogy(lag_times,
+    print timescales.shape
+    
+    for i, stride in enumerate(args.strides):
+        lag_time = stride * args.timestep
+        plt.semilogy(lag_time * np.ones(args.n_states),
                      timescales[:, i],
                      "k.-")
     
