@@ -133,7 +133,6 @@ def sweep_lag_times(args):
         timescales.append(msm.timescales)
 
     timescales = np.array(timescales)
-    print timescales.shape
 
     n_timescales = timescales.shape[0]
     for i, stride in enumerate(args.strides):
@@ -145,7 +144,7 @@ def sweep_lag_times(args):
     plt.xlabel("Lag Time (ns)", fontsize=16)
     plt.ylabel("Timescale (ns)", fontsize=16)
 
-    plt.savefig(args.fig_flname,
+    plt.savefig(args.figure_fl,
                 DPI=300)
 
 def parseargs():
