@@ -72,14 +72,12 @@ class MarkovModel(object):
         transitions = sym_counts / sym_counts.sum(axis=1)[:, None]
 
         # get right eigenvectors
-        u, v = LA.eig(transitions.T)
+        u, v = LA.eig(transitions)
 
         # re-order in descending order
         sorted_idx = np.argsort(u)[::-1]    
         u = u[sorted_idx]
         v = v[:, sorted_idx]
-
-        print u
 
         self.timescales = - self.timestep * self.stride / np.log(u[1:])
         self.equilibrium_dist = v[:, 0] / v[:, 0].sum()
@@ -139,8 +137,9 @@ def sweep_lag_times(args):
     lag_times = [args.timestep * stride for stride in args.strides]
     n_timescales = timescales.shape[0]
     for i in xrange(n_timescales):
+        print i, timescales[:, i]
         plt.semilogy(lag_times,
-                     timescales[i, :],
+                     timescales[:, i],
                      "k.-")
     
     plt.xlabel("Lag Time (ns)", fontsize=16)
