@@ -192,10 +192,10 @@ def parseargs():
                                        required=True,
                                        help="Strides to use when computing transitions")
 
-    lag_time_sweep_parser.add_argument("--n-clusters",
+    lag_time_sweep_parser.add_argument("--n-states",
                                        type=int,
                                        required=True,
-                                       help="Number of clusters to use")
+                                       help="Number of states to use")
     
     lag_time_sweep_parser.add_argument("--model-file",
                                        type=str,
