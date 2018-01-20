@@ -227,8 +227,8 @@ def parseargs():
                                        help="Plot timescales",
                                        required=True)
 
-    train_parser = subparser.add_parser("train-model",
-                                        help="Train and save a model")
+    train_parser = subparsers.add_parser("train-model",
+                                         help="Train and save a model")
 
     train_parser.add_argument("--dimensions",
                               type=int,
