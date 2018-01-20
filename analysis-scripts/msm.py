@@ -137,7 +137,7 @@ def sweep_lag_times(args):
     for stride in args.strides:
         lag_times.append(stride * args.timestep)
 
-    for i in args.n_states:
+    for i in xrange(args.n_states):
         plt.semilogy(lag_times,
                      timescales[:, i],
                      "k.-")
