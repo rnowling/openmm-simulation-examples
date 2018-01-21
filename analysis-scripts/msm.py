@@ -171,10 +171,11 @@ def plot_fluxes(args):
     for i in xrange(n_fluxes):
         colors = []
         for j in xrange(msm.n_states):
-            if msm.v[j, i] >= 0:
+            if msm.v[j, i + 1] >= 0.0:
                 colors.append("g")
             else:
                 colors.append("r")
+        print colors
         plt.clf()
         nx.draw(G, node_colors=colors)
         flname = os.path.join(args.figures_dir,
