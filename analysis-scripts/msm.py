@@ -179,7 +179,7 @@ def plot_fluxes(args):
         plt.clf()
         nx.draw_networkx(G,
                          cmap=plt.get_cmap('jet'),
-                         node_colors=colors)
+                         node_color=colors)
         flname = os.path.join(args.figures_dir,
                               "flux_%s.png" % (i + 1))
         plt.savefig(flname,
