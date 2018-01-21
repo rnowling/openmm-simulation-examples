@@ -192,7 +192,7 @@ def plot_msm_network(args):
     
     default_size = 300.0
     node_size = []
-    if args.scale_sizes == "observed-populations":
+    if args.scale_size == "observed-populations":
         total = msm.obs_pop_counts.sum()
         for p in msm.obs_pop_counts:
             node_size.append(p * default_size / total)
