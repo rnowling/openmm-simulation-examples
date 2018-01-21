@@ -177,7 +177,7 @@ def plot_fluxes(args):
                 colors.append("r")
         print colors
         plt.clf()
-        nx.draw(G, node_colors=colors)
+        nx.draw_networkx(G, node_colors=colors)
         flname = os.path.join(args.figures_dir,
                               "flux_%s.png" % (i + 1))
         plt.savefig(flname,
