@@ -172,12 +172,14 @@ def plot_fluxes(args):
         colors = []
         for j in xrange(msm.n_states):
             if msm.v[j, i] >= 0.0:
-                colors.append("g")
+                colors.append(0.25)
             else:
-                colors.append("r")
+                colors.append(0.75)
         print colors
         plt.clf()
-        nx.draw_networkx(G, node_colors=colors)
+        nx.draw_networkx(G,
+                         cmap=plt.get_cmap('jet'),
+                         node_colors=colors)
         flname = os.path.join(args.figures_dir,
                               "flux_%s.png" % (i + 1))
         plt.savefig(flname,
