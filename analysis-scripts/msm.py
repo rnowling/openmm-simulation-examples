@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy.linalg as LA
 import numpy as np
+from scipy import stats
 from sklearn.cluster import k_means
 from sklearn.externals import joblib
 
@@ -215,6 +216,93 @@ def plot_msm_network(args):
     plt.savefig(args.figure_fl,
                 DPI=300)
 
+def test_residue_dihedral_distributions(phi_1, psi_1, phi_2, psi_2):
+    n_bins = 10
+    bins = np.linspace(-np.pi, np.pi, num=n_bins + 1)
+
+    # last residue has no phi / psi angles    
+    n_residues = phi_1.shape[1]
+    residue_pvalues = []
+    for resid in xrange(n_residues):
+        dist_1, _, _ = np.histogram2d(phi_1[:, resid],
+                                      psi_1[:, resid],
+                                      bins = [bins, bins])
+
+        dist_2, _, _ = np.histogram2d(phi_2[:, resid],
+                                      psi_2[:, resid],
+                                      bins = [bins, bins])
+
+        # fudge factor to ensure that no bins are empty
+        dist_1 += 1
+
+        freq_1 = (dist_1 / np.sum(dist_1)).flatten()
+
+        freq_2 = (dist_2 / np.sum(dist_2)).flatten()
+
+        G = 0
+        used_bins = 0
+        for i in xrange(freq_1.shape[0]):
+            # skip over empty bins
+            if freq_2[i] > 0.0:
+                used_bins += 1
+                G += freq_2[i] * np.log(freq_2[i] / freq_1[i])
+        G *= 2 * dist_2.size
+
+        p = stats.chi2.sf(G, used_bins)
+
+        print resid, G, p
+
+        lower_bound = 1.0e-100
+        p = max(lower_bound, p)
+
+        residue_pvalues.append((resid + 1, p))
+
+    residue_pvalues.sort(key = lambda t: t[-1])
+    return residue_pvalues
+
+def compare_dihedral_distributions(args):
+    msm = joblib.load(args.msm_model_file)
+    
+
+    print "reading trajectory"
+    traj = md.load(args.input_traj,
+                   top=args.pdb_file)
+
+    print "computing dihedrals"
+    _, phi_angles = md.compute_phi(traj,
+                                   periodic=False)
+    _, psi_angles = md.compute_psi(traj,
+                                   periodic=False)
+
+    for state_1 in xrange(msm.n_states - 1):
+        state_1_frames = [idx for idx, state in enumerate(msm.labels) \
+                          if state == state_1]
+        phi_1 = phi_angles[state_1_frames, :]
+        psi_1 = psi_angles[state_1_frames, :]
+
+        for state_2 in xrange(state_1 + 1, msm.n_states):
+            state_2_frames = [idx for idx, state in enumerate(msm.labels) \
+                              if state == state_2]
+            
+            if msm.sym_counts[state_1, state_2] > 0:
+                print "Testing State %s vs State %s" % (state_1, state_2)
+                
+                phi_2 = phi_angles[state_2_frames, :]
+                psi_2 = psi_angles[state_2_frames, :]
+
+                residue_pvalues = test_residue_dihedral_distributions(phi_1,
+                                                                      psi_1,
+                                                                      phi_2,
+                                                                      psi_2)
+
+                flname = os.path.join(output_dir,
+                                      "state_dihedral_tests_%s_%s.tsv" % (state_1,
+                                                                          state_2))
+                with open(flname, "w") as fl:
+                    for resid, pvalue in residue_pvalues:
+                        fl.write("%s\t%s\n" % (resid, pvalue))
+
+
 def parseargs():
     parser = argparse.ArgumentParser()
 
@@ -346,6 +434,28 @@ def parseargs():
                                     required=True,
                                     help="Figures dir")
 
+    state_dihedral_parser = subparsers.add_parser("test-state-dihedrals",
+                                                  help="Run G-tests on state by state dihedral distributions")
+
+    state_dihedral_parser.add_argument("--msm-model-file",
+                                       type=str,
+                                       required=True,
+                                       help="File from which to load MSM model")
+    
+    state_dihedral_parser.add_argument("--output-dir",
+                                       type=str,
+                                       required=True,
+                                       help="Output directory")
+
+    state_dihedral_parser.add_argument("--pdb-file",
+                                       type=str,
+                                       required=True,
+                                       help="PDB file")
+
+    state_dihedral_parser.add_argument("--input-traj",
+                                       type=str,
+                                       required=True,
+                                       help="Input trajectory")
     
     return parser.parse_args()
 
@@ -363,6 +473,8 @@ if __name__ == "__main__":
         plot_msm_network(args)
     elif args.mode == "draw-fluxes":
         plot_fluxes(args)
+    elif args.mode == "test-state-dihedrals":
+        compare_dihedral_distributions(args)
     else:
         print "Unknown mode '%s'" % args.mode
         sys.exit(1)
