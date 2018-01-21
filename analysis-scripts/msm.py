@@ -197,8 +197,9 @@ def plot_msm_network(args):
         for p in msm.obs_pop_counts:
             node_size.append(p * default_size / total)
     elif args.scale_size == "equilibrium-populations":
+        expected = 1.0 / msm.n_states
         for p in msm.equilibrium_dist:
-            node_size.append(p * default_size)
+            node_size.append(default_size * (p / expected))
     else:
         node_size = None
 
