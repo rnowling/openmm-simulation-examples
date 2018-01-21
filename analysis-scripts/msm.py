@@ -137,7 +137,7 @@ def sweep_lag_times(args):
     timescales = np.array(timescales)
 
     lag_times = [args.timestep * stride for stride in args.strides]
-    n_timescales = timescales.shape[0]
+    n_timescales = timescales.shape[1]
     for i in xrange(n_timescales):
         print i, timescales[:, i]
         plt.semilogy(lag_times,
