@@ -322,7 +322,7 @@ def parseargs():
 
     draw_parser.add_argument("--scale-size",
                              type=str,
-                             choices=["observed-populations"
+                             choices=["observed-populations",
                                       "equilibrium-populations"],
                              default=None)
 
