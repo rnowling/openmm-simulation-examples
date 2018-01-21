@@ -189,7 +189,21 @@ def plot_msm_network(args):
     msm = joblib.load(args.msm_model_file)
 
     G = nx.DiGraph(msm.transitions)
-    nx.draw(G)
+    
+    default_size = 300.0
+    node_size = []
+    if args.scale_sizes == "observed-populations":
+        total = msm.obs_pop_counts.sum()
+        for p in msm.obs_pop_counts:
+            node_size.append(p * default_size / total)
+    elif args.scale_sizes == "equilibrium-populations":
+        for p in msm.equilibrium_dist:
+            node_size.append(p * default_size)
+    else:
+        node_size = None
+
+    nx.draw_networkx(G,
+                     node_size=node_size)
 
     plt.savefig(args.figure_fl,
                 DPI=300)
@@ -305,6 +319,12 @@ def parseargs():
                              type=str,
                              required=True,
                              help="Plot filename")
+
+    draw_parser.add_argument("--scale-size",
+                             type=str,
+                             choices=["observed-populations"
+                                      "equilibrium-populations"],
+                             default=None)
 
     draw_fluxes_parser = subparsers.add_parser("draw-fluxes",
                                                help="Draw fluxes")
