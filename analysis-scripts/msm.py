@@ -168,6 +168,11 @@ def plot_fluxes(args):
     msm = joblib.load(args.msm_model_file)
     G = nx.DiGraph(msm.transitions)
     n_fluxes = msm.v.shape[-1]
+    default_size = 300.0
+    node_size = []
+    expected = 1.0 / msm.n_states
+    for p in msm.equilibrium_dist:
+        node_size.append(default_size * (p / expected))
     for i in xrange(n_fluxes):
         colors = []
         for j in xrange(msm.n_states):
@@ -179,7 +184,8 @@ def plot_fluxes(args):
         plt.clf()
         nx.draw_networkx(G,
                          cmap=plt.get_cmap('bwr'),
-                         node_color=colors)
+                         node_color=colors,
+                         node_size=node_size)
         flname = os.path.join(args.figures_dir,
                               "flux_%s.png" % (i + 1))
         plt.savefig(flname,
