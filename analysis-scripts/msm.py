@@ -296,7 +296,7 @@ def compare_dihedral_distributions(args):
                                                                       phi_2,
                                                                       psi_2)
 
-                flname = os.path.join(output_dir,
+                flname = os.path.join(args.output_dir,
                                       "state_dihedral_tests_%s_%s.tsv" % (state_1,
                                                                           state_2))
                 with open(flname, "w") as fl:
