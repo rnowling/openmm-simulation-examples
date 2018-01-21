@@ -171,7 +171,7 @@ def plot_fluxes(args):
     for i in xrange(n_fluxes):
         colors = []
         for j in xrange(msm.n_states):
-            if msm.v[j, i + 1] >= 0.0:
+            if msm.v[j, i] >= 0.0:
                 colors.append("g")
             else:
                 colors.append("r")
