@@ -22,6 +22,7 @@ import sys
 import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
+import mdtraj as md
 import networkx as nx
 import numpy.linalg as LA
 import numpy as np
