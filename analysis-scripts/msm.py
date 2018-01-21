@@ -241,20 +241,14 @@ def test_residue_dihedral_distributions(phi_1, psi_1, phi_2, psi_2):
         freq_2 = (dist_2 / np.sum(dist_2)).flatten()
 
         G = 0
-        used_bins = 0
         for i in xrange(freq_1.shape[0]):
             # skip over empty bins
             if freq_2[i] > 0.0:
-                used_bins += 1
                 G += freq_2[i] * np.log(freq_2[i] / freq_1[i])
         G *= 2 * dist_2.size
 
-        p = stats.chi2.sf(G, used_bins)
-
-        print resid, G, p
-
-        lower_bound = 1.0e-100
-        p = max(lower_bound, p)
+        df = (n_bins - 1) * (n_bins - 1)
+        p = stats.chi2.sf(G, df)
 
         residue_pvalues.append((resid + 1, p))
 
