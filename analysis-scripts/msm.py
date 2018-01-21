@@ -182,7 +182,7 @@ def plot_fluxes(args):
                 colors.append(0.1)
         print colors
         plt.clf()
-        nx.draw_networkx(G,
+        nx.draw_circular(G,
                          cmap=plt.get_cmap('bwr'),
                          node_color=colors,
                          node_size=node_size)
@@ -209,7 +209,7 @@ def plot_msm_network(args):
     else:
         node_size = None
 
-    nx.draw_networkx(G,
+    nx.draw_circular(G,
                      node_size=node_size)
 
     plt.savefig(args.figure_fl,
