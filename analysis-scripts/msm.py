@@ -81,14 +81,9 @@ class MarkovModel(object):
         u = u[sorted_idx]
         v = v[:, sorted_idx]
 
-        print v.sum(axis=0)
-
         self.timescales = - self.timestep * self.stride / np.log(u[1:])
         self.equilibrium_dist = v[:, 0] / v[:, 0].sum()
-
-        print u
-        print self.equilibrium_dist
-        
+        self.v = v[:, 1:]
 
 def sweep_clusters(args):
     data = joblib.load(args.model_file)
@@ -169,11 +164,28 @@ def train_model(args):
 
     joblib.dump(msm, args.msm_model_file)
 
+def plot_fluxes(args):
+    msm = joblib.load(args.msm_model_file)
+    G = nx.DiGraph(msm.transitions)
+    n_fluxes = msm.v.shape[-1]
+    for i in xrange(n_fluxes):
+        colors = []
+        for j in xrange(msm.n_states):
+            if msm.v[j, i] >= 0:
+                colors.append("g")
+            else:
+                colors.append("r")
+        plt.clf()
+        nx.draw(G, node_colors=colors)
+        flname = os.path.join(args.figures_dir,
+                              "flux_%s.png" % (i + 1))
+        plt.savefig(flname,
+                    DPI=300)
+
 def plot_msm_network(args):
     msm = joblib.load(args.msm_model_file)
 
     G = nx.DiGraph(msm.transitions)
-
     nx.draw(G)
 
     plt.savefig(args.figure_fl,
@@ -279,7 +291,7 @@ def parseargs():
                               help="Elapsed time in ns between frames")
 
     draw_parser = subparsers.add_parser("draw-network",
-                                        help="Train network model")
+                                        help="Draw network")
 
     draw_parser.add_argument("--msm-model-file",
                              type=str,
@@ -290,6 +302,20 @@ def parseargs():
                              type=str,
                              required=True,
                              help="Plot filename")
+
+    draw_fluxes_parser = subparsers.add_parser("draw-fluxes",
+                                               help="Draw fluxes")
+
+    draw_fluxes_parser.add_argument("--msm-model-file",
+                                    type=str,
+                                    required=True,
+                                    help="File from which to load MSM model")
+
+    draw_fluxes_parser.add_argument("--figures-dir",
+                                    type=str,
+                                    required=True,
+                                    help="Figures dir")
+
     
     return parser.parse_args()
 
@@ -305,6 +331,8 @@ if __name__ == "__main__":
         train_model(args)
     elif args.mode == "draw-network":
         plot_msm_network(args)
+    elif args.mode == "draw-fluxes":
+        plot_fluxes(args)
     else:
         print "Unknown mode '%s'" % args.mode
         sys.exit(1)
