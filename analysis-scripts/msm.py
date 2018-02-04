@@ -182,12 +182,14 @@ def plot_fluxes(args):
                 colors.append(0.9)
             else:
                 colors.append(0.1)
-        print colors
         plt.clf()
         nx.draw_circular(G,
+                         pos=nx.nx_pydot.pydot_layout(G, prog="neato"),
                          cmap=plt.get_cmap('Vega20c'),
                          node_color=colors,
                          node_size=node_size,
+                         vmin=0.0,
+                         vmax=1.0,
                          with_labels=True)
         flname = os.path.join(args.figures_dir,
                               "flux_%s.png" % (i + 1))
@@ -212,18 +214,13 @@ def plot_msm_network(args):
     else:
         node_size = None
 
-    """
-    nx.draw_circular(G,
-                     cmap=plt.get_cmap('Vega20c'),
-                     node_size=node_size,
-                     with_labels=True)
-    """
     nx.draw(G,
             pos=nx.nx_pydot.pydot_layout(G, prog="neato"),
             node_size=node_size,
             with_labels=True,
             vmin=0.0,
             vmax=1.0,
+            node_color=0.9,
             cmap=plt.get_cmap("Vega20c"))
 
     plt.savefig(args.figure_fl,
