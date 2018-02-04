@@ -88,6 +88,7 @@ class MarkovModel(object):
         self.v = v[:, 1:]
 
         eq_vec = v[:, 0].reshape(1, -1)
+        print eq_vec
         print eq_vec.shape
         print np.dot(eq_vec.T, eq_vec)
 
