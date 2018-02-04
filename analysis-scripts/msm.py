@@ -87,9 +87,9 @@ class MarkovModel(object):
         self.equilibrium_dist = v[:, 0] / v[:, 0].sum()
         self.v = v[:, 1:]
 
-        eq_vec = v[:, 0]
+        eq_vec = v[:, 0].reshape(1, -1)
         print eq_vec.shape
-        print np.dot(eq_vec[:, -1].T, v[:, -1])
+        print np.dot(eq_vec.T, eq_vec)
 
 def sweep_clusters(args):
     data = joblib.load(args.model_file)
