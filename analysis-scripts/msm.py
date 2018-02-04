@@ -183,14 +183,14 @@ def plot_fluxes(args):
             else:
                 colors.append(0.1)
         plt.clf()
-        nx.draw_circular(G,
-                         pos=nx.nx_pydot.pydot_layout(G, prog="neato"),
-                         cmap=plt.get_cmap('Vega20c'),
-                         node_color=colors,
-                         node_size=node_size,
-                         vmin=0.0,
-                         vmax=1.0,
-                         with_labels=True)
+        nx.draw(G,
+                pos=nx.nx_pydot.pydot_layout(G, prog="neato"),
+                cmap=plt.get_cmap('Vega20c'),
+                node_color=colors,
+                node_size=node_size,
+                vmin=0.0,
+                vmax=1.0,
+                with_labels=True)
         flname = os.path.join(args.figures_dir,
                               "flux_%s.png" % (i + 1))
         plt.savefig(flname,
