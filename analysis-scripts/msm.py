@@ -220,7 +220,7 @@ def plot_msm_network(args):
             with_labels=True,
             vmin=0.0,
             vmax=1.0,
-            node_color=0.9,
+            node_color=[0.9] * nx.number_of_nodes(G),
             cmap=plt.get_cmap("Vega20c"))
 
     plt.savefig(args.figure_fl,
