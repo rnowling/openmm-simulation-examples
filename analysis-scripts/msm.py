@@ -188,7 +188,7 @@ def plot_fluxes(args):
                          cmap=plt.get_cmap('bwr'),
                          node_color=colors,
                          node_size=node_size,
-                         with_label=True)
+                         with_labels=True)
         flname = os.path.join(args.figures_dir,
                               "flux_%s.png" % (i + 1))
         plt.savefig(flname,
@@ -214,7 +214,7 @@ def plot_msm_network(args):
 
     nx.draw_circular(G,
                      node_size=node_size,
-                     with_label=True)
+                     with_labels=True)
 
     plt.savefig(args.figure_fl,
                 DPI=300)
