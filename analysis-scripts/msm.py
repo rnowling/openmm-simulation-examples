@@ -75,7 +75,7 @@ class MarkovModel(object):
         # normalize columns
         self.transitions = self.sym_counts / self.sym_counts.sum(axis=1)[:, None]
 
-        # get right eigenvectors
+        # get left eigenvectors
         u, v = LA.eig(self.transitions.T)
 
         # re-order in descending order
@@ -87,11 +87,10 @@ class MarkovModel(object):
         self.equilibrium_dist = v[:, 0] / v[:, 0].sum()
         self.v = v[:, 1:]
 
-        print v[:, 0], np.dot(v[:, 0], self.transitions)
-        
+        print self.equilibrium_dist
+        print self.obs_pop_counts / self.obs_pop_counts.sum()
+
         eq_vec = v[:, 0].reshape(1, -1)
-        print eq_vec
-        print eq_vec.shape
         print np.dot(eq_vec.T, eq_vec)
 
 def sweep_clusters(args):
