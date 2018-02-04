@@ -88,7 +88,7 @@ class MarkovModel(object):
         self.v = v[:, 1:]
 
         print self.equilibrium_dist
-        print self.obs_pop_counts / self.obs_pop_counts.sum()
+        print self.obs_pop_counts / np.float(self.obs_pop_counts.sum())
 
         eq_vec = v[:, 0].reshape(1, -1)
         print np.dot(eq_vec.T, eq_vec)
