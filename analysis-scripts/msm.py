@@ -87,6 +87,8 @@ class MarkovModel(object):
         self.equilibrium_dist = v[:, 0] / v[:, 0].sum()
         self.v = v[:, 1:]
 
+        print v[:, 0], np.dot(v[:, 0], self.transitions)
+        
         eq_vec = v[:, 0].reshape(1, -1)
         print eq_vec
         print eq_vec.shape
