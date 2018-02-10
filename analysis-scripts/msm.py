@@ -75,8 +75,7 @@ class MarkovModel(object):
             G = nx.DiGraph(counts)
             forward_mapping = nx.dfs_preorder_nodes(G, source=self.labels[0])
             if len(forward_mapping) != self.n_states:
-                print "Unable to re-order states for readability"
-                raise Exception
+                raise Exception("Unable to re-order states for readability")
 
             reverse_mapping = [-1] * self.n_states
             for new_idx, old_idx in enumerate(forward_mapping):
@@ -95,8 +94,8 @@ class MarkovModel(object):
                 if j < len(self.labels):
                     to_ = self.labels[j]
                     counts[to_, from_] += 1
-        except:
-            pass
+        except ex:
+            print ex
 
         self.obs_pop_counts = np.zeros(self.n_states,
                                   dtype=np.int)
