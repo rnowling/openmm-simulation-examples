@@ -94,7 +94,7 @@ class MarkovModel(object):
                 if j < len(self.labels):
                     to_ = self.labels[j]
                     counts[to_, from_] += 1
-        except ex:
+        except Exception as ex:
             print ex
 
         self.obs_pop_counts = np.zeros(self.n_states,
