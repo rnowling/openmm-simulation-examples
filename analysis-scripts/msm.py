@@ -504,10 +504,10 @@ def parseargs():
                                         required=True,
                                         help="File from which to load MSM model")
 
-    draw_timeseries_parser.add_argument("--figures-dir",
+    draw_timeseries_parser.add_argument("--figure-fl",
                                         type=str,
                                         required=True,
-                                        help="Figures dir")
+                                        help="Figure flname")
     
     state_dihedral_parser = subparsers.add_parser("test-state-dihedrals",
                                                   help="Run G-tests on state by state dihedral distributions")
