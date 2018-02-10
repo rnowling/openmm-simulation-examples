@@ -239,6 +239,20 @@ def plot_fluxes(args):
         plt.savefig(flname,
                     DPI=300)
 
+def plot_state_timeseries(args):
+    msm = joblib.load(args.msm_model_file)
+
+    times = np.arange(1, len(msm.labels) + 1) * msm.timestep
+    plt.plot(times,
+             msm.labels,
+             "k")
+
+    plt.xlabel("Time (ns)", fontsize=16)
+    plt.ylabel("State", fontsize=16)
+    plt.grid(True)
+    plt.savefig(args.figure_fl,
+                DPI=300)
+        
 def plot_msm_network(args):
     msm = joblib.load(args.msm_model_file)
 
@@ -482,6 +496,19 @@ def parseargs():
                                     required=True,
                                     help="Figures dir")
 
+    draw_timeseries_parser = subparsers.add_parser("draw-timeseries",
+                                                   help="Draw timeseries of states")
+
+    draw_timeseries_parser.add_argument("--msm-model-file",
+                                        type=str,
+                                        required=True,
+                                        help="File from which to load MSM model")
+
+    draw_timeseries_parser.add_argument("--figures-dir",
+                                        type=str,
+                                        required=True,
+                                        help="Figures dir")
+    
     state_dihedral_parser = subparsers.add_parser("test-state-dihedrals",
                                                   help="Run G-tests on state by state dihedral distributions")
 
@@ -521,6 +548,8 @@ if __name__ == "__main__":
         plot_msm_network(args)
     elif args.mode == "draw-fluxes":
         plot_fluxes(args)
+    elif args.mode == "draw-timeseries":
+        plot_state_timeseries(args)
     elif args.mode == "test-state-dihedrals":
         compare_dihedral_distributions(args)
     else:
