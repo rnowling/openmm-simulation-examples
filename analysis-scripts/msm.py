@@ -52,19 +52,56 @@ class MarkovModel(object):
                                           tol=0.00001,
                                           n_init=25)
 
-        self.obs_pop_counts = np.zeros(self.n_states,
-                                  dtype=np.int)
-        for idx in self.labels:
-            self.obs_pop_counts[idx] += 1
+        # we want to re-order the states for readability so we:
+        # 1. build the count matrix
+        # 2. perform a DFS from the first state
+        # 3. map the old states to the new states
+        # 4. re-label the frames
+        # 5. re-compute the count matrix
+        #
+        # I know this could be done by re-ordering the rows / cols
+        # of the count matrix but I'm too lazy to figure that out
+        # right now.
 
         counts = np.zeros((self.n_states,
                            self.n_states))
-
         for i, from_ in enumerate(self.labels):
             j = i + self.stride
             if j < len(self.labels):
                 to_ = self.labels[j]
                 counts[to_, from_] += 1
+
+        try:
+            G = nx.DiGraph(counts)
+            forward_mapping = nx.dfs_preorder_nodes(G, source=init_labels[0])
+            if len(forward_mapping) != self.n_states:
+                print "Unable to re-order states for readability"
+                raise Exception
+
+            reverse_mapping = [-1] * self.n_states
+            for new_idx, old_idx in enumerate(forward_mapping):
+                reverse_mapping[old_idx] = new_idx
+
+            new_labels = self.labels.copy()
+            for idx, orig_label in enumerate(self.labels):
+                new_label = reverse_mapping[orig_label]
+                new_labels[idx] = new_label
+            self.labels = new_labels
+
+            counts = np.zeros((self.n_states,
+                           self.n_states))
+            for i, from_ in enumerate(self.labels):
+            j = i + self.stride
+            if j < len(self.labels):
+                to_ = self.labels[j]
+                counts[to_, from_] += 1
+        except:
+            pass
+
+        self.obs_pop_counts = np.zeros(self.n_states,
+                                  dtype=np.int)
+        for idx in self.labels:
+            self.obs_pop_counts[idx] += 1
 
         # for prettier printing
         print counts.astype(np.int32)
