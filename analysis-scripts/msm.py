@@ -73,7 +73,7 @@ class MarkovModel(object):
 
         try:
             G = nx.DiGraph(counts)
-            forward_mapping = nx.dfs_preorder_nodes(G, source=init_labels[0])
+            forward_mapping = nx.dfs_preorder_nodes(G, source=self.labels[0])
             if len(forward_mapping) != self.n_states:
                 print "Unable to re-order states for readability"
                 raise Exception
