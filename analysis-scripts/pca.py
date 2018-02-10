@@ -126,7 +126,7 @@ def train_model(args):
         projected = model.fit_transform([features])[0]
 
     else:
-        raise Exception, "Unknown model tyope '%s'", args.model
+        raise Exception, "Unknown model type '%s'", args.model
     
 
     print "Writing model"
@@ -209,8 +209,8 @@ def plot_projections(args):
         vmin = np.min(np.min(H_T))
         vmax = np.max(np.max(H_T))
         plt.pcolor(H_T, vmin=vmin, vmax=vmax)
-        plt.xlabel("Principal Component %s" % p1, fontsize=16)
-        plt.ylabel("Principal Component %s" % p2, fontsize=16)
+        plt.xlabel("Component %s" % p1, fontsize=16)
+        plt.ylabel("Component %s" % p2, fontsize=16)
         x_ticks = [round(f, 1) for f in xedges]
         y_ticks = [round(f, 1) for f in yedges]
         plt.xticks(np.arange(H_T.shape[0] + 1)[::2], x_ticks[::2])
