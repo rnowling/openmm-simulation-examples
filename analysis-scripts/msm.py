@@ -72,7 +72,7 @@ class MarkovModel(object):
                 counts[to_, from_] += 1
 
         try:
-            G = nx.DiGraph(counts)
+            G = nx.DiGraph(counts.T)
             forward_mapping = list(nx.dfs_preorder_nodes(G, source=self.labels[0]))
             print forward_mapping
             if len(forward_mapping) != self.n_states:
