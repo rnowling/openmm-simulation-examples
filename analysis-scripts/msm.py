@@ -91,10 +91,10 @@ class MarkovModel(object):
             counts = np.zeros((self.n_states,
                            self.n_states))
             for i, from_ in enumerate(self.labels):
-            j = i + self.stride
-            if j < len(self.labels):
-                to_ = self.labels[j]
-                counts[to_, from_] += 1
+                j = i + self.stride
+                if j < len(self.labels):
+                    to_ = self.labels[j]
+                    counts[to_, from_] += 1
         except:
             pass
 
