@@ -288,15 +288,19 @@ def test_residue_dihedral_distributions(phi_1, psi_1, phi_2, psi_2):
     n_bins = 10
     bins = np.linspace(-np.pi, np.pi, num=n_bins + 1)
 
-    # last residue has no phi / psi angles    
+    # first residue has no phi angle
+    # last residue has no psi angle
+    # so we only have pairs for residues 1 to n - 2
     n_residues = phi_1.shape[1]
-    residue_pvalues = []
-    for resid in xrange(n_residues):
-        dist_1, _, _ = np.histogram2d(phi_1[:, resid],
+    residue_pvalues = np.zeros(n_resides)
+    residue_pvalues = [(1, 1.0)]
+    
+    for resid in xrange(1, n_residues - 1):
+        dist_1, _, _ = np.histogram2d(phi_1[:, resid - 1],
                                       psi_1[:, resid],
                                       bins = [bins, bins])
 
-        dist_2, _, _ = np.histogram2d(phi_2[:, resid],
+        dist_2, _, _ = np.histogram2d(phi_2[:, resid - 1],
                                       psi_2[:, resid],
                                       bins = [bins, bins])
 
@@ -319,7 +323,9 @@ def test_residue_dihedral_distributions(phi_1, psi_1, phi_2, psi_2):
 
         residue_pvalues.append((resid + 1, p))
 
+    residue_pvalues.append((n_residues, 1.0))
     residue_pvalues.sort(key = lambda t: t[-1])
+    
     return residue_pvalues
 
 def compare_dihedral_distributions(args):
