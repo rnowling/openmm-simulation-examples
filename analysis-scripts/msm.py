@@ -292,7 +292,6 @@ def test_residue_dihedral_distributions(phi_1, psi_1, phi_2, psi_2):
     # last residue has no psi angle
     # so we only have pairs for residues 1 to n - 2
     n_residues = phi_1.shape[1]
-    residue_pvalues = np.zeros(n_resides)
     residue_pvalues = [(1, 1.0)]
     
     for resid in xrange(1, n_residues - 1):
