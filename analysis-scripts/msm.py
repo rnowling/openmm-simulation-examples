@@ -303,15 +303,14 @@ def test_residue_dihedral_distributions(data_1, data_2):
 
         print dist_1.shape, dist_2.shape
 
-        print dist_1
-        print dist_2
-
         # fudge factor to ensure that no bins are empty
         dist_1 += 1
 
         freq_1 = (dist_1 / np.sum(dist_1)).flatten()
 
         freq_2 = (dist_2 / np.sum(dist_2)).flatten()
+
+        print np.abs(freq_2 - freq_1)
 
         G = 0
         for i in xrange(freq_1.shape[0]):
