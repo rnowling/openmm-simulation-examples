@@ -293,7 +293,8 @@ def test_residue_dihedral_distributions(data_1, data_2):
 
     residue_pvalues = np.zeros(n_residues)
     
-    for resid in xrange(n_residues):
+    #for resid in xrange(n_residues):
+    for resid in [0]:
         dist_1, _ = np.histogramdd(data_1[:, resid, :],
                                    bins = bin_spec)
 
@@ -301,6 +302,9 @@ def test_residue_dihedral_distributions(data_1, data_2):
                                    bins = bin_spec)
 
         print dist_1.shape, dist_2.shape
+
+        print dist_1
+        print dist_2
 
         # fudge factor to ensure that no bins are empty
         dist_1 += 1
@@ -317,6 +321,7 @@ def test_residue_dihedral_distributions(data_1, data_2):
         G *= 2 * dist_2.size
 
         df = np.power(n_bins - 1, n_dim)
+        print n_dim, df
         p = stats.chi2.sf(G, df)
         
         residue_pvalues[i] = p
