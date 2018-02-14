@@ -343,7 +343,7 @@ def compare_dihedral_distributions(args):
                           axis=2)
 
         # 1-based indexing
-        resids = range(2, traj.n_residues - 1)
+        resids = range(2, traj.n_residues)
         
     elif args.angle_type == "chi":
         atom_indices, chi_angles = md.compute_chi1(traj,
