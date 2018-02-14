@@ -356,7 +356,7 @@ def compare_dihedral_distributions(args):
         # not all residues have chi dihedrals
         top = traj.topology
         # convert to 1-based indexing
-        resids = [top.atom(atoms[0]).index + 1 for atoms in atom_indices]
+        resids = [top.atom(atoms[0]).residue.index + 1 for atoms in atom_indices]
 
     for state_1 in xrange(msm.n_states - 1):
         state_1_frames = [idx for idx, state in enumerate(msm.labels) \
