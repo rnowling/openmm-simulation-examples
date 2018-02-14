@@ -332,15 +332,16 @@ def test_residue_dihedral_distributions(data_1, data_2):
     n_residues = data_1.shape[0]
     n_bins = 10
     bins = np.linspace(-np.pi, np.pi, num=n_bins + 1)
+    bin_spec = [bins] * n_dim
 
     residue_pvalues = np.zeros(n_residues)
     
     for resid in xrange(1, n_residues - 1):
         dist_1, _, _ = np.histogramdd(data_1,
-                                      bins = bins)
+                                      bins = bin_spec)
 
         dist_2, _, _ = np.histogram2d(data_2,
-                                      bins = bins)
+                                      bins = bin_spec)
 
         # fudge factor to ensure that no bins are empty
         dist_1 += 1
@@ -366,7 +367,6 @@ def test_residue_dihedral_distributions(data_1, data_2):
 
 def compare_dihedral_distributions(args):
     msm = joblib.load(args.msm_model_file)
-    
 
     print "reading trajectory"
     traj = md.load(args.input_traj,
