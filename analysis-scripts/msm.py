@@ -327,6 +327,43 @@ def test_residue_dihedral_distributions(phi_1, psi_1, phi_2, psi_2):
     
     return residue_pvalues
 
+def test_residue_dihedral_distributions(data_1, data_2):
+    n_dim = data_1.shape[1]
+    n_residues = data_1.shape[0]
+    n_bins = 10
+    bins = np.linspace(-np.pi, np.pi, num=n_bins + 1)
+
+    residue_pvalues = np.zeros(n_residues)
+    
+    for resid in xrange(1, n_residues - 1):
+        dist_1, _, _ = np.histogramdd(data_1,
+                                      bins = bins)
+
+        dist_2, _, _ = np.histogram2d(data_2,
+                                      bins = bins)
+
+        # fudge factor to ensure that no bins are empty
+        dist_1 += 1
+
+        freq_1 = (dist_1 / np.sum(dist_1)).flatten()
+
+        freq_2 = (dist_2 / np.sum(dist_2)).flatten()
+
+        G = 0
+        for i in xrange(freq_1.shape[0]):
+            # skip over empty bins
+            if freq_2[i] > 0.0:
+                G += freq_2[i] * np.log(freq_2[i] / freq_1[i])
+        G *= 2 * dist_2.size
+
+        df = np.power(n_bins - 1, n_dim)
+        p = stats.chi2.sf(G, df)
+        
+        residue_pvalues[i] = p
+    
+    return residue_pvalues
+
+
 def compare_dihedral_distributions(args):
     msm = joblib.load(args.msm_model_file)
     
@@ -336,35 +373,56 @@ def compare_dihedral_distributions(args):
                    top=args.pdb_file)
 
     print "computing dihedrals"
-    _, phi_angles = md.compute_phi(traj,
-                                   periodic=False)
-    _, psi_angles = md.compute_psi(traj,
-                                   periodic=False)
+    if args.angle_type == "phi-psi":
+        _, phi_angles = md.compute_phi(traj,
+                                       periodic=False)
+        _, psi_angles = md.compute_psi(traj,
+                                       periodic=False)
+        # first residue has no phi angle
+        # last residue has no psi angle
+        # so we only have pairs for residues 1 to n - 2
+        angles = np.hstack([phi_angles[:-1],
+                            psi_angles[1:]])
+        # 1-based indexing
+        resids = range(2, traj.n_residues - 1)
+        
+    elif args.angle_type == "chi":
+        atom_indices, chi_angles = md.compute_chi1(traj,
+                                                   periodic=False)
+
+        # not all residues have chi dihedrals
+        top = traj.topology
+        resids = [top.atom(atoms[0]).index for atoms in atom_indices]
+        print resids
 
     for state_1 in xrange(msm.n_states - 1):
         state_1_frames = [idx for idx, state in enumerate(msm.labels) \
                           if state == state_1]
-        phi_1 = phi_angles[state_1_frames, :]
-        psi_1 = psi_angles[state_1_frames, :]
+        state_1_angles = angles[state_1_frames, :]
 
         for state_2 in xrange(state_1 + 1, msm.n_states):
-            state_2_frames = [idx for idx, state in enumerate(msm.labels) \
-                              if state == state_2]
             
             if msm.sym_counts[state_1, state_2] > 0:
                 print "Testing State %s vs State %s" % (state_1, state_2)
-                
-                phi_2 = phi_angles[state_2_frames, :]
-                psi_2 = psi_angles[state_2_frames, :]
 
-                residue_pvalues = test_residue_dihedral_distributions(phi_1,
-                                                                      psi_1,
-                                                                      phi_2,
-                                                                      psi_2)
+                state_2_frames = [idx for idx, state in enumerate(msm.labels) \
+                                  if state == state_2]
+
+                state_2_angles = angles[state_2_frames, :]
+
+                pvalues = test_residue_dihedral_distributions(state_1_angles,
+                                                              state_2_angles)
+
+                if len(pvalues) != len(resids):
+                    raise Exception("Number of residue ids (%s) and p-values (%s) mismatched" % (len(resids), len(pvalues)))
+                
+                residue_pvalues = zip(resids,
+                                      pvalues)
 
                 flname = os.path.join(args.output_dir,
-                                      "state_dihedral_tests_%s_%s.tsv" % (state_1,
-                                                                          state_2))
+                                      "state_dihedral_tests_%s_%s_%s.tsv" % (args.angle_type,
+                                                                             state_1,
+                                                                             state_2))
                 with open(flname, "w") as fl:
                     for resid, pvalue in residue_pvalues:
                         fl.write("%s\t%s\n" % (resid, pvalue))
@@ -536,6 +594,13 @@ def parseargs():
                                        type=str,
                                        required=True,
                                        help="Input trajectory")
+
+    state_dihedral_parser.add_argument("--angle-type",
+                                       type=str,
+                                       required=True,
+                                       choices=["phi-psi",
+                                                "chi"],
+                                       help="Type of dihedrals to test")
     
     return parser.parse_args()
 
