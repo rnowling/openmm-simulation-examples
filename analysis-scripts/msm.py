@@ -349,9 +349,9 @@ def compare_dihedral_distributions(args):
         atom_indices, chi_angles = md.compute_chi1(traj,
                                                    periodic=False)
 
-        chi_angles = chi_angles.reshape(chi_angles.shape[0],
-                                        chi_angles.shape[1],
-                                        -1)
+        angles = chi_angles.reshape(chi_angles.shape[0],
+                                    chi_angles.shape[1],
+                                    -1)
         
         # not all residues have chi dihedrals
         top = traj.topology
