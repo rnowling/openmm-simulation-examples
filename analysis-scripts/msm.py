@@ -310,7 +310,9 @@ def test_residue_dihedral_distributions(data_1, data_2):
 
         freq_2 = (dist_2 / np.sum(dist_2)).flatten()
 
-        print np.abs(freq_2 - freq_1)
+        print freq_1
+        print
+        print freq_2
 
         G = 0
         for i in xrange(freq_1.shape[0]):
