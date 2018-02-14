@@ -336,11 +336,11 @@ def test_residue_dihedral_distributions(data_1, data_2):
 
     residue_pvalues = np.zeros(n_residues)
     
-    for resid in xrange(1, n_residues - 1):
-        dist_1, _, _ = np.histogramdd(data_1,
+    for resid in xrange(n_residues):
+        dist_1, _, _ = np.histogramdd(data_1[resid],
                                       bins = bin_spec)
 
-        dist_2, _, _ = np.histogram2d(data_2,
+        dist_2, _, _ = np.histogram2d(data_2[resid],
                                       bins = bin_spec)
 
         # fudge factor to ensure that no bins are empty
@@ -381,8 +381,12 @@ def compare_dihedral_distributions(args):
         # first residue has no phi angle
         # last residue has no psi angle
         # so we only have pairs for residues 1 to n - 2
-        angles = np.hstack([phi_angles[:-1],
-                            psi_angles[1:]])
+        angles = np.stack([phi_angles[:-1],
+                           psi_angles[1:]],
+                          axis=2)
+
+        print angles.shape
+        
         # 1-based indexing
         resids = range(2, traj.n_residues - 1)
         
@@ -390,6 +394,10 @@ def compare_dihedral_distributions(args):
         atom_indices, chi_angles = md.compute_chi1(traj,
                                                    periodic=False)
 
+        chi_angles = chi_angles.reshape(chi_angles.shape[0],
+                                        chi_angles.shape[1],
+                                        -1)
+        
         # not all residues have chi dihedrals
         top = traj.topology
         resids = [top.atom(atoms[0]).index for atoms in atom_indices]
