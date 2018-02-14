@@ -284,52 +284,9 @@ def plot_msm_network(args):
     plt.savefig(args.figure_fl,
                 DPI=300)
 
-def test_residue_dihedral_distributions(phi_1, psi_1, phi_2, psi_2):
-    n_bins = 10
-    bins = np.linspace(-np.pi, np.pi, num=n_bins + 1)
-
-    # first residue has no phi angle
-    # last residue has no psi angle
-    # so we only have pairs for residues 1 to n - 2
-    n_residues = phi_1.shape[1] + 1
-    residue_pvalues = [(1, 1.0)]
-    
-    for resid in xrange(1, n_residues - 1):
-        dist_1, _, _ = np.histogram2d(phi_1[:, resid - 1],
-                                      psi_1[:, resid],
-                                      bins = [bins, bins])
-
-        dist_2, _, _ = np.histogram2d(phi_2[:, resid - 1],
-                                      psi_2[:, resid],
-                                      bins = [bins, bins])
-
-        # fudge factor to ensure that no bins are empty
-        dist_1 += 1
-
-        freq_1 = (dist_1 / np.sum(dist_1)).flatten()
-
-        freq_2 = (dist_2 / np.sum(dist_2)).flatten()
-
-        G = 0
-        for i in xrange(freq_1.shape[0]):
-            # skip over empty bins
-            if freq_2[i] > 0.0:
-                G += freq_2[i] * np.log(freq_2[i] / freq_1[i])
-        G *= 2 * dist_2.size
-
-        df = (n_bins - 1) * (n_bins - 1)
-        p = stats.chi2.sf(G, df)
-
-        residue_pvalues.append((resid + 1, p))
-
-    residue_pvalues.append((n_residues, 1.0))
-    residue_pvalues.sort(key = lambda t: t[-1])
-    
-    return residue_pvalues
-
 def test_residue_dihedral_distributions(data_1, data_2):
-    n_dim = data_1.shape[1]
-    n_residues = data_1.shape[0]
+    n_dim = data_1.shape[2]
+    n_residues = data_1.shape[1]
     n_bins = 10
     bins = np.linspace(-np.pi, np.pi, num=n_bins + 1)
     bin_spec = [bins] * n_dim
@@ -337,10 +294,10 @@ def test_residue_dihedral_distributions(data_1, data_2):
     residue_pvalues = np.zeros(n_residues)
     
     for resid in xrange(n_residues):
-        dist_1, _, _ = np.histogramdd(data_1[resid],
+        dist_1, _, _ = np.histogramdd(data_1[:, resid, :],
                                       bins = bin_spec)
 
-        dist_2, _, _ = np.histogram2d(data_2[resid],
+        dist_2, _, _ = np.histogram2d(data_2[:, resid, :],
                                       bins = bin_spec)
 
         # fudge factor to ensure that no bins are empty
