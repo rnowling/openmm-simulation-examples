@@ -300,6 +300,8 @@ def test_residue_dihedral_distributions(data_1, data_2):
         dist_2, _ = np.histogramdd(data_2[:, resid, :],
                                    bins = bin_spec)
 
+        print dist_1.shape, dist_2.shape
+
         # fudge factor to ensure that no bins are empty
         dist_1 += 1
 
@@ -361,7 +363,7 @@ def compare_dihedral_distributions(args):
     for state_1 in xrange(msm.n_states - 1):
         state_1_frames = [idx for idx, state in enumerate(msm.labels) \
                           if state == state_1]
-        state_1_angles = angles[state_1_frames, :]
+        state_1_angles = angles[state_1_frames, :, :]
 
         for state_2 in xrange(state_1 + 1, msm.n_states):
             
@@ -371,7 +373,7 @@ def compare_dihedral_distributions(args):
                 state_2_frames = [idx for idx, state in enumerate(msm.labels) \
                                   if state == state_2]
 
-                state_2_angles = angles[state_2_frames, :]
+                state_2_angles = angles[state_2_frames, :, :]
 
                 pvalues = test_residue_dihedral_distributions(state_1_angles,
                                                               state_2_angles)
