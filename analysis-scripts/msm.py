@@ -338,12 +338,10 @@ def compare_dihedral_distributions(args):
         # first residue has no phi angle
         # last residue has no psi angle
         # so we only have pairs for residues 1 to n - 2
-        angles = np.stack([phi_angles[:-1],
-                           psi_angles[1:]],
+        angles = np.stack([phi_angles[:, :-1],
+                           psi_angles[:, 1:]],
                           axis=2)
 
-        print angles.shape
-        
         # 1-based indexing
         resids = range(2, traj.n_residues - 1)
         
@@ -358,7 +356,6 @@ def compare_dihedral_distributions(args):
         # not all residues have chi dihedrals
         top = traj.topology
         resids = [top.atom(atoms[0]).index for atoms in atom_indices]
-        print resids
 
     for state_1 in xrange(msm.n_states - 1):
         state_1_frames = [idx for idx, state in enumerate(msm.labels) \
