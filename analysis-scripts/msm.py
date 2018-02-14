@@ -297,8 +297,8 @@ def test_residue_dihedral_distributions(data_1, data_2):
         dist_1, _ = np.histogramdd(data_1[:, resid, :],
                                    bins = bin_spec)
 
-        dist_2, _ = np.histogram2d(data_2[:, resid, :],
-                                    bins = bin_spec)
+        dist_2, _ = np.histogramdd(data_2[:, resid, :],
+                                   bins = bin_spec)
 
         # fudge factor to ensure that no bins are empty
         dist_1 += 1
