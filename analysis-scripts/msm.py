@@ -428,7 +428,7 @@ def test_distance_distributions(pairs, cutoff, distances_1, distances_2):
                                                 state_1_std_dev = state_1_std_dev,
                                                 state_2_mean = state_2_mean,
                                                 state_2_std_dev = state_2_std_dev,
-                                                ttest_pvalue = ttest_pvalue)
+                                                ttest_pvalue = ttest_pvalue))
 
     return test_results
 
