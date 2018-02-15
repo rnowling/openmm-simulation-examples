@@ -398,8 +398,7 @@ ResidueDistanceTest = namedtuple("ResidueDistanceTest",
                                   "state_1_std_dev",
                                   "state_2_mean",
                                   "state_2_std_dev",
-                                  "ttest_pvalue",
-                                  "kstest_pvalue"])
+                                  "ttest_pvalue"])
 
 def test_distance_distributions(pairs, distances_1, distances_2):
     test_results = []
@@ -411,9 +410,6 @@ def test_distance_distributions(pairs, distances_1, distances_2):
         _, ttest_pvalue = stats.ttest_ind(pair_dist_1,
                                           pair_dist_2,
                                           equal_var=False)
-
-        _, kstest_pvalue = stats.ks_2samp(pair_dist_1,
-                                          pair_dist_2)
 
         state_1_mean = np.mean(pair_dist_1)
         state_1_std_dev = np.std(pair_dist_1)
@@ -427,8 +423,7 @@ def test_distance_distributions(pairs, distances_1, distances_2):
                                                 state_1_std_dev = state_1_std_dev,
                                                 state_2_mean = state_2_mean,
                                                 state_2_std_dev = state_2_std_dev,
-                                                ttest_pvalue = ttest_pvalue,
-                                                kstest_pvalue = kstest_pvalue))
+                                                ttest_pvalue = ttest_pvalue)
 
     return test_results
 
