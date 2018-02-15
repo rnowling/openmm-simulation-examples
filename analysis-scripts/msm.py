@@ -422,8 +422,8 @@ def test_distance_distributions(pairs, cutoff, distances_1, distances_2):
         state_2_mean = np.mean(pair_dist_2)
         state_2_std_dev = np.std(pair_dist_2)
 
-        test_results.append(ResidueDistanceTest(residue_1 = res_1,
-                                                residue_2 = res_2,
+        test_results.append(ResidueDistanceTest(residue_1 = res_1 + 1,
+                                                residue_2 = res_2 + 1,
                                                 state_1_mean = state_1_mean,
                                                 state_1_std_dev = state_1_std_dev,
                                                 state_2_mean = state_2_mean,
