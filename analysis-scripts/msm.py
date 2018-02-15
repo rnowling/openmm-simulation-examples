@@ -406,9 +406,14 @@ def test_distance_distributions(pairs, cutoff, distances_1, distances_2):
         pair_dist_1 = distances_1[:, i]
         pair_dist_2 = distances_2[:, i]
 
+        state_1_mean = np.mean(pair_dist_1)
+        state_1_std_dev = np.std(pair_dist_1)
+
+        state_2_mean = np.mean(pair_dist_2)
+        state_2_std_dev = np.std(pair_dist_2)
+        
         # skip pairs that are not within cutoff distance
-        if (pair_dist_1 <= cutoff).sum() == 0 and \
-           (pair_dist_2 <= cutoff).sum() == 0:
+        if state_1_mean > cutoff and state_2_mean > cutoff:
             continue
 
         # Welch's t-test for unequal variances
@@ -416,11 +421,6 @@ def test_distance_distributions(pairs, cutoff, distances_1, distances_2):
                                           pair_dist_2,
                                           equal_var=False)
 
-        state_1_mean = np.mean(pair_dist_1)
-        state_1_std_dev = np.std(pair_dist_1)
-
-        state_2_mean = np.mean(pair_dist_2)
-        state_2_std_dev = np.std(pair_dist_2)
 
         test_results.append(ResidueDistanceTest(residue_1 = res_1 + 1,
                                                 residue_2 = res_2 + 1,
@@ -678,7 +678,7 @@ def parseargs():
 
     state_distance_parser.add_argument("--cutoff",
                                        type=float,
-                                       default=4.0,
+                                       default=3.0,
                                        help="Cutoff (in nm) for ignoring pairs.")
     
     return parser.parse_args()
