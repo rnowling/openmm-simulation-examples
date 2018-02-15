@@ -400,11 +400,16 @@ ResidueDistanceTest = namedtuple("ResidueDistanceTest",
                                   "state_2_std_dev",
                                   "ttest_pvalue"])
 
-def test_distance_distributions(pairs, distances_1, distances_2):
+def test_distance_distributions(pairs, cutoff, distances_1, distances_2):
     test_results = []
     for i, (res_1, res_2) in enumerate(pairs):
         pair_dist_1 = distances_1[:, i]
         pair_dist_2 = distances_2[:, i]
+
+        # skip pairs that are not within cutoff distance
+        if (pair_dist_1 <= cutoff).sum() == 0 and \
+           (pair_dist_2 <= cutoff).sum() == 0:
+            continue
 
         # Welch's t-test for unequal variances
         _, ttest_pvalue = stats.ttest_ind(pair_dist_1,
@@ -459,6 +464,7 @@ def compare_distance_distributions(args):
                                                            periodic=False)
 
                 test_results = test_distance_distributions(pairs,
+                                                           args.cutoff,
                                                            state_1_distances,
                                                            state_2_distances)
 
@@ -669,6 +675,11 @@ def parseargs():
                                        type=str,
                                        required=True,
                                        help="Input trajectory")
+
+    state_distance_parser.add_argument("--cutoff",
+                                       type=float,
+                                       default=4.0,
+                                       help="Cutoff (in nm) for ignoring pairs.")
     
     return parser.parse_args()
 
