@@ -682,7 +682,7 @@ def parseargs():
 
     state_distance_parser.add_argument("--cutoff",
                                        type=float,
-                                       default=3.0,
+                                       default=2.0,
                                        help="Cutoff (in nm) for ignoring pairs.")
     
     return parser.parse_args()
