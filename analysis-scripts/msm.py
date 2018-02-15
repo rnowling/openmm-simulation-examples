@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import argparse
+from collections import namedtuple
 from itertools import combinations
 import os
 import sys
@@ -390,6 +391,89 @@ def compare_dihedral_distributions(args):
                     for resid, pvalue in residue_pvalues:
                         fl.write("%s\t%s\n" % (resid, pvalue))
 
+ResidueDistanceTest = namedtuple("ResidueDistanceTest",
+                                 ["residue_1",
+                                  "residue_2",
+                                  "state_1_mean",
+                                  "state_1_std_dev",
+                                  "state_2_mean",
+                                  "state_2_std_dev",
+                                  "ttest_pvalue",
+                                  "kstest_pvalue"])
+
+def test_distance_distributions(pairs, distances_1, distances_2):
+    test_results = []
+    for i, (res_1, res_2) in enumerate(pairs):
+        pair_dist_1 = distances_1[:, i]
+        pair_dist_2 = distances_2[:, i]
+
+        # Welch's t-test for unequal variances
+        _, ttest_pvalue = stats.ttest_ind(pair_dist_1,
+                                          pair_dist_2,
+                                          equal_var=False)
+
+        _, kstest_pvalue = stats.ks_2samp(pair_dist_1,
+                                          pair_dist_2)
+
+        state_1_mean = np.mean(pair_dist_1)
+        state_1_std_dev = np.mean(pair_dist_1)
+
+        state_2_mean = np.mean(pair_dist_2)
+        state_2_std_dev = np.mean(pair_dist_2)
+
+        test_results.append(ResidueDistanceTest(residue_1 = res_1,
+                                                residue_2 = res_2,
+                                                state_1_mean = state_1_mean,
+                                                state_1_std_dev = state_1_std_dev,
+                                                state_2_mean = state_2_mean,
+                                                state_2_std_dev = state_2_std_dev,
+                                                ttest_pvalue = ttest_pvalue,
+                                                kstest_pvalue = kstest_pvalue))
+
+    return test_results
+
+def compare_distance_distributions(args):
+    msm = joblib.load(args.msm_model_file)
+
+    print "reading trajectory"
+    traj = md.load(args.input_traj,
+                   top=args.pdb_file)
+
+    print "Computing distances"
+    # use alpha carbons to reduce comp cost
+    distances, pairs = md.compute_contacts(traj,
+                                           scheme="ca",
+                                           periodic=False)
+
+    for state_1 in xrange(msm.n_states - 1):
+        state_1_frames = [idx for idx, state in enumerate(msm.labels) \
+                          if state == state_1]
+
+        state_1_distances = distances[state_1_frames]
+
+        for state_2 in xrange(state_1 + 1, msm.n_states):            
+            if msm.sym_counts[state_1, state_2] > 0:
+                print "Testing State %s vs State %s" % (state_1, state_2)
+
+                state_2_frames = [idx for idx, state in enumerate(msm.labels) \
+                                  if state == state_2]
+
+                state_2_distances = distances[state_2_frames]
+
+                test_results = test_distance_distributions(pairs,
+                                                           state_1_distances,
+                                                           state_2_distances)
+
+                flname = os.path.join(args.output_dir,
+                                      "state_distance_tests_%s_%s.tsv" % (state_1,
+                                                                          state_2))
+                with open(flname, "w") as fl:
+                    fl.write("\t".join(ResidueDistanceTest._fields))
+                    fl.write("\n")
+
+                    for result in test_results:
+                        fl.write("\t".join(map(str, result)))
+                        fl.write("\n")
 
 def parseargs():
     parser = argparse.ArgumentParser()
@@ -564,6 +648,29 @@ def parseargs():
                                        choices=["phi-psi",
                                                 "chi"],
                                        help="Type of dihedrals to test")
+
+    state_distance_parser = subparsers.add_parser("test-state-distances",
+                                                  help="Run t and KS tests on state by state distance distributions")
+
+    state_distance_parser.add_argument("--msm-model-file",
+                                       type=str,
+                                       required=True,
+                                       help="File from which to load MSM model")
+
+    state_distance_parser.add_argument("--output-dir",
+                                       type=str,
+                                       required=True,
+                                       help="Output directory")
+
+    state_distance_parser.add_argument("--pdb-file",
+                                       type=str,
+                                       required=True,
+                                       help="PDB file")
+
+    state_distance_parser.add_argument("--input-traj",
+                                       type=str,
+                                       required=True,
+                                       help="Input trajectory")
     
     return parser.parse_args()
 
@@ -585,6 +692,8 @@ if __name__ == "__main__":
         plot_state_timeseries(args)
     elif args.mode == "test-state-dihedrals":
         compare_dihedral_distributions(args)
+    elif args.mode == "test-state-distances":
+        compare_distance_distributions(args)
     else:
         print "Unknown mode '%s'" % args.mode
         sys.exit(1)
