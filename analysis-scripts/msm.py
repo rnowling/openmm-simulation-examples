@@ -417,9 +417,13 @@ def test_distance_distributions(pairs, cutoff, distances_1, distances_2):
             continue
 
         # Welch's t-test for unequal variances
-        _, ttest_pvalue = stats.ttest_ind(pair_dist_1,
-                                          pair_dist_2,
-                                          equal_var=False)
+        _, ttest_pvalue = stats.ttest_ind_from_stats(state_1_mean,
+                                                     state_1_std_dev,
+                                                     len(pair_dist_1),
+                                                     state_2_mean,
+                                                     state_2_std_dev,
+                                                     len(pair_dist_2),
+                                                     equal_var=False)
 
 
         test_results.append(ResidueDistanceTest(residue_1 = res_1 + 1,
