@@ -439,7 +439,6 @@ def compare_distance_distributions(args):
     traj = md.load(args.input_traj,
                    top=args.pdb_file)
 
-
     for state_1 in xrange(msm.n_states - 1):
         state_1_frames = [idx for idx, state in enumerate(msm.labels) \
                           if state == state_1]
