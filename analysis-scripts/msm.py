@@ -439,17 +439,16 @@ def compare_distance_distributions(args):
     traj = md.load(args.input_traj,
                    top=args.pdb_file)
 
-    print "Computing distances"
-    # use alpha carbons to reduce comp cost
-    distances, pairs = md.compute_contacts(traj,
-                                           scheme="ca",
-                                           periodic=False)
 
     for state_1 in xrange(msm.n_states - 1):
         state_1_frames = [idx for idx, state in enumerate(msm.labels) \
                           if state == state_1]
 
-        state_1_distances = distances[state_1_frames]
+        print "Computing state %s distances" % state_1
+        # use alpha carbons to reduce comp cost
+        state_1_distances, pairs = md.compute_contacts(traj[state_1_frames],
+                                                       scheme="ca",
+                                                       periodic=False)
 
         for state_2 in xrange(state_1 + 1, msm.n_states):            
             if msm.sym_counts[state_1, state_2] > 0:
@@ -458,7 +457,11 @@ def compare_distance_distributions(args):
                 state_2_frames = [idx for idx, state in enumerate(msm.labels) \
                                   if state == state_2]
 
-                state_2_distances = distances[state_2_frames]
+                print "Computing state %s distances" % state_2
+                # use alpha carbons to reduce comp cost
+                state_2_distances, _ = md.compute_contacts(traj[state_2_frames],
+                                                           scheme="ca",
+                                                           periodic=False)
 
                 test_results = test_distance_distributions(pairs,
                                                            state_1_distances,
