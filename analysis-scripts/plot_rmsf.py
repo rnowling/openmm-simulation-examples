@@ -25,10 +25,9 @@ import matplotlib.pyplot as plt
 import mdtraj as md
 import numpy as np
 
-def plot_rmsf(args):
-    if not os.path.exists(args.figures_dir):
-        os.makedirs(args.figures_dir)
+import matplotlib.patches as patches
 
+def plot_rmsf(args):
     print "reading trajectory"
     traj = md.load(args.input_traj,
                    top=args.pdb_file)
@@ -37,52 +36,73 @@ def plot_rmsf(args):
     backbone = traj.topology.select_atom_indices("minimal")
     traj.superpose(traj, atom_indices=backbone)
 
-    print "computing secondary structure"
-    sec_structures = md.compute_dssp(traj)
-
-    counter = Counter()
-    colors = []
-    for r in xrange(traj.n_residues):
-        counter.clear()
-        for f in xrange(traj.n_frames):
-            ss = sec_structures[f, r]
-            counter[ss] += 1
-        code, cnt = counter.most_common(1)[0]
-        if code == "H":
-            colors.append("m")
-        elif code == "E":
-            colors.append("y")
-        elif code == "C":
-            colors.append("g")
-        else:
-            raise Exception
-            
-
     print "computing RMSF"
     alpha_carbons = traj.topology.select_atom_indices("alpha")
     avg_xyz = np.mean(traj.xyz[:, alpha_carbons, :], axis=0)
     rmsf = np.sqrt(3*np.mean((traj.xyz[:, alpha_carbons, :] - avg_xyz)**2, axis=(0,2)))
 
     plt.clf()
-    plt.bar(xrange(1, len(rmsf) + 1),
-            rmsf,
-            width=1.0,
-            color = colors)
+    plt.plot(xrange(1, traj.n_residues + 1),
+             rmsf,
+             label="RMSF")
+
+    binding = patches.Rectangle((71, 0),
+                                263 - 70,
+                                0.1,
+                                linewidth=1,
+                                edgecolor='y',
+                                facecolor='y')
+    
+    tm1 = patches.Rectangle((264, 0),
+                            286 - 264,
+                            0.1,
+                            linewidth=1,
+                            edgecolor='m',
+                            facecolor='m')
+
+    tm2 = patches.Rectangle((295, 0),
+                            317 - 295,
+                            0.1,
+                            linewidth=1,
+                            edgecolor='m',
+                            facecolor='m')
+
+    tm3 = patches.Rectangle((327, 0),
+                            349 - 327,
+                            0.1,
+                            linewidth=1,
+                            edgecolor='m',
+                            facecolor='m')
+
+    tm4 = patches.Rectangle((520, 0),
+                            537 - 520,
+                            0.1,
+                            linewidth=1,
+                            edgecolor='m',
+                            facecolor='m')
+
+    ax = plt.gca()
+    ax.add_patch(binding)
+    ax.add_patch(tm1)
+    ax.add_patch(tm2)
+    ax.add_patch(tm3)
+    ax.add_patch(tm4)
+    
     plt.xlabel("Residue", fontsize=16)
     plt.ylabel("RMSF (nm)", fontsize=16)
-    plt.ylim([0, max(rmsf)])
-    fig_flname = os.path.join(args.figures_dir, "rmsf.png")
-    plt.savefig(fig_flname,
+    plt.ylim([0, max(rmsf) * 1.1])
+    plt.xlim([-1, traj.n_residues + 2])
+    plt.savefig(args.figure_fl,
                 DPI=300)
 
     
 def parseargs():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--figures-dir",
+    parser.add_argument("--figure-fl",
                         type=str,
                         required=True,
-                        help="Figure output directory")
+                        help="Figure output file")
 
     parser.add_argument("--pdb-file",
                         type=str,
