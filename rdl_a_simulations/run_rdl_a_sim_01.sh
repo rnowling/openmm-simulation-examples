@@ -3,7 +3,7 @@
 mkdir -p ~/scratch/rdl/rdl_a_simulations
 
 python amber_gbsa.py \
-       --steps 250000000 \
+       --steps 1000000000 \
        --positions-fl ~/scratch/rdl/rdl_a_simulations/rdl_a_implicit_sim_01.dcd \
        --energies-fl ~/scratch/rdl/rdl_a_simulations/rdl_a_implicit_sim_01.energies.tsv \
        --output-state rdl_a_implicit_sim_01.state \
