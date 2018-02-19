@@ -22,6 +22,7 @@ import sys
 import matplotlib
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import mdtraj as md
 import numpy as np
 from sklearn.cluster import k_means
@@ -248,28 +249,98 @@ def plot_projected_timeseries(args):
     plt.savefig(fig_flname,
                 DPI=300)
 
-def plot_pc_magnitudes(args):
+def calculate_magnitudes(args):
     model = joblib.load(args.model_file)
     svd = model[MODEL_KEY]
 
+    n_dim = svd.components_.shape[0]
+    # really n_residues - 1
+    n_residues = svd.components_.shape[1] / 4
+    components = svd.components_.reshape(n_dim, n_residues, -1)
+    
+    # y dim should be phi_sin, phi_cos, psi_sin, psi_cos
+    # first residue has no phi angle
+    # last residue has no psi angle
+    # so we only have pairs for residues 1 to n - 2
+    components = np.stack([components[:, :-1, 0],
+                           components[:, :-1, 1],
+                           components[:, 1:, 2],
+                           components[:, 1:, 3]],
+                          axis=2)
+    
+    resids = range(2, n_residues + 1)
     for dim in args.dimensions:
-        plt.clf()
-        components = svd.components_[dim, :]
-        components = components.reshape(554, -1)
-        magnitudes = np.sqrt(np.sum(components**2, axis=1))
-        print magnitudes.shape
-        plt.plot(magnitudes,
-                 label=str(dim))
-        plt.xlabel("Time (frames)", fontsize=16)
-        plt.ylabel("Projected Value", fontsize=16)
-        plt.tight_layout()
-        plt.legend()
+        magnitudes = np.sqrt(np.sum(components[dim, :, :]**2, axis=1))
+    
+        if args.figures_dir:
+            plt.clf()
+            plt.plot(resids,
+                     magnitudes,
+                     label=str(dim))
 
-        fig_flname = os.path.join(args.figures_dir,
-                                  "pc_components_%s.png" % str(dim))
-        
-        plt.savefig(fig_flname,
-                    DPI=300)
+            height = 0.1
+
+            binding = patches.Rectangle((71, -0.1),
+                                        263 - 70,
+                                        height,
+                                        linewidth=1,
+                                        edgecolor='y',
+                                        facecolor='y')
+    
+            tm1 = patches.Rectangle((264, -0.1),
+                                    286 - 264,
+                                    height,
+                                    linewidth=1,
+                                    edgecolor='m',
+                                    facecolor='m')
+
+            tm2 = patches.Rectangle((295, -0.1),
+                                    317 - 295,
+                                    height,
+                                    linewidth=1,
+                                    edgecolor='m',
+                                    facecolor='m')
+
+            tm3 = patches.Rectangle((327, -0.1),
+                                    349 - 327,
+                                    height,
+                                    linewidth=1,
+                                    edgecolor='m',
+                                    facecolor='m')
+
+            tm4 = patches.Rectangle((520, -0.1),
+                                    537 - 520,
+                                    height,
+                                    linewidth=1,
+                                    edgecolor='m',
+                                    facecolor='m')
+
+            ax = plt.gca()
+            ax.add_patch(binding)
+            ax.add_patch(tm1)
+            ax.add_patch(tm2)
+            ax.add_patch(tm3)
+            ax.add_patch(tm4)
+            
+            plt.xlabel("Residue", fontsize=16)
+            plt.ylabel("Magnitude", fontsize=16)
+            plt.tight_layout()
+            
+            fig_flname = os.path.join(args.figures_dir,
+                                      "component_magnitudes_%s.png" % str(dim))
+            
+            plt.savefig(fig_flname,
+                        DPI=300)
+
+        if args.tsv_dir:
+            flname = os.path.join(args.tsv_dir,
+                                  "component_magnitudes_%s.tsv" % str(dim))
+            with open(flname, "w") as fl:
+                fl.write("residue\tmagnitude\n")
+                pairs = zip(resids, magnitudes)
+                pairs.sort(key=lambda p: p[1], reverse=True)
+                for resid, magnitude in pairs:
+                    fl.write("%s\t%s\n" % (resid, magnitude))
 
     
 def parseargs():
@@ -391,21 +462,24 @@ def parseargs():
                                 required=True,
                                 help="File from which to load model")
 
-    plot_pc_parser = subparsers.add_parser("plot-pc",
-                                           help="Plot PC values")
+    comp_res_magn_parser = subparsers.add_parser("component-residue-magnitudes",
+                                           help="Calculate component residue magnitudes")
 
-    plot_pc_parser.add_argument("--figures-dir",
+    comp_res_magn_parser.add_argument("--figures-dir",
                                 type=str,
-                                required=True,
                                 help="Figure output directory")
 
-    plot_pc_parser.add_argument("--dimensions",
+    comp_res_magn_parser.add_argument("--tsv-dir",
+                                type=str,
+                                help="tsv output directory")
+    
+    comp_res_magn_parser.add_argument("--dimensions",
                                 type=int,
                                 nargs="+",
                                 required=True,
                                 help="Dimensions to plot")
 
-    plot_pc_parser.add_argument("--model-file",
+    comp_res_magn_parser.add_argument("--model-file",
                                 type=str,
                                 required=True,
                                 help="File from which to load model")
@@ -425,8 +499,8 @@ if __name__ == "__main__":
         plot_projections(args)
     elif args.mode == "plot-projected-timeseries":
         plot_projected_timeseries(args)
-    elif args.mode == "plot-pc":
-        plot_pc_magnitudes(args)
+    elif args.mode == "component-residue-magnitudes":
+        calculate_magnitudes(args)
     else:
         print "Unknown mode '%s'" % args.mode
         sys.exit(1)
